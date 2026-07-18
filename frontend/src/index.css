@@ -2,48 +2,44 @@
 @config "../tailwind.config.cjs";
 /* =========================================================
    DARK THEME MAP LEAFLET SEARCH & ZOOM OVERRIDES
-   (Keeping this because Leaflet is external and needs raw CSS)
    ========================================================= */
-.leaflet-geosearch-bar,
-.leaflet-geosearch-form,
-.leaflet-geosearch-form input {
-  background-color: #0c1322 !important; 
-  color: #dce2f7 !important; 
-  border: 1px solid #374151 !important; 
+/* Target the dynamic layout structures injected by the plugin */
+.leaflet-control-geosearch form,
+.leaflet-control-geosearch input,
+.glass input,
+.glass form {
+  background-color: #ffffff !important;
+  color: #000000 !important; /* Forces typed character visibility to solid black */
+  border: 1px solid #374151 !important;
   border-radius: 6px !important;
 }
 
-.leaflet-geosearch-form input::placeholder {
-  color: #8fa0ba !important;
+.leaflet-control-geosearch input::placeholder {
+  color: #6b7280 !important; /* High contrast dark grey search text placeholder */
 }
 
-.leaflet-geosearch-bar a.reset {
-  background: #141b2b !important;
-  color: #dce2f7 !important;
+/* Clear reset buttons */
+.leaflet-control-geosearch a.reset {
+  background: #f3f4f6 !important;
+  color: #0b0f19 !important;
   border-left: 1px solid #374151 !important;
-  border-radius: 0 6px 6px 0 !important;
 }
 
-.leaflet-geosearch-bar a.reset:hover {
-  background: #2e3545 !important;
+/* Dynamic dropdown search results list mapping */
+.leaflet-control-geosearch .results,
+.leaflet-control-geosearch .results > * {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
-.results.leaflet-bar {
-  background: #0c1322 !important;
-  border: 1px solid #374151 !important;
-  color: #dce2f7 !important;
-}
-
-.results.leaflet-bar > * {
-  border-bottom: 1px solid #374151 !important;
-}
-
-.results.leaflet-bar > *:hover {
-  background: #141b2b !important;
+.leaflet-control-geosearch .results > *:hover {
+  background-color: #f3f4f6 !important;
   color: #ff7a19 !important;
 }
 
-.leaflet-bar a,
+/* General Leaflet Control Box Elements (Zoom +, - buttons) */
+.leaflet-bar a, 
 .leaflet-bar a:hover {
   background-color: #0c1322 !important;
   color: #dce2f7 !important;
