@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@config "../tailwind.config.cjs";
 /* =========================================================
    DARK THEME MAP LEAFLET SEARCH & ZOOM OVERRIDES
    (Keeping this because Leaflet is external and needs raw CSS)
