@@ -40,6 +40,7 @@ origins = [
     "http://172.20.10.2:5173",  
     "https://cute-scone-0e71cf.netlify.app",
     "https://sitetrack-app.netlify.app", # <--- ADD THIS ONE!
+    "https://site-track-app.vercel.app",
 ]
 app.add_middleware(
     CORSMiddleware,
