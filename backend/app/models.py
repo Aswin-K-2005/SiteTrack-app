@@ -1,5 +1,6 @@
 import enum
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import (
     Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Date, Enum
@@ -27,7 +28,7 @@ class Site(Base):
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     radius_m = Column(Integer, nullable=False, default=150)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Kolkata")))
 
     users = relationship("User", back_populates="site")
     attendance_records = relationship("AttendanceRecord", back_populates="site")
@@ -47,7 +48,7 @@ class User(Base):
     site_id = Column(Integer, ForeignKey("sites.id"), nullable=True)
     site = relationship("Site", back_populates="users")
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Kolkata")))
 
     attendance_records = relationship("AttendanceRecord", back_populates="user",cascade="all,delete-orphan")
 
