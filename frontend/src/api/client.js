@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Set VITE_API_URL in .env when deploying; falls back to local dev backend.
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://sitetrack-app.onrender.com";
 
 const client = axios.create({ baseURL: API_URL });
 
