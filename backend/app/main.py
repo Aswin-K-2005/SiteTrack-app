@@ -37,10 +37,10 @@ app = FastAPI(title="SiteTrack API", version="0.1.0")
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://172.20.10.2:5173",  # 📱 Your Mobile Phone UI Origin Entry
+    "http://172.20.10.2:5173",  
     "https://cute-scone-0e71cf.netlify.app",
+    "https://sitetrack-app.netlify.app", # <--- ADD THIS ONE!
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
