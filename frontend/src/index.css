@@ -1,39 +1,311 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+:root{
+  --bg:#15171b;
+  --surface:#1e2126;
+  --surface-2:#282c33;
+  --border:#383d46;
+  --text:#f1efe9;
+  --text-dim:#9aa0ac;
+  --accent:#ff7a1a;
+  --accent-dim:#c96116;
+  --hazard:#f5c518;
+  --danger:#e5484d;
+  --success:#3ecf7e;
+  --radius:10px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body,#root{margin:0;padding:0;min-height:100vh;background:var(--bg);color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;}
+#root{display:flex;flex-direction:column;}
 
-export default function Topbar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+.hazard-bar{
+  height:6px;width:100%;flex-shrink:0;
+  background:repeating-linear-gradient(135deg, var(--hazard) 0 14px, #1a1c1f 14px 28px);
+}
 
-  function handleLogout() {
-    logout();
-    navigate("/login");
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:10;
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.brand-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:0.5px;color:var(--text);}
+.brand-text span{color:var(--accent);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.user-chip{font-size:13px;color:var(--text-dim);text-align:right;line-height:1.3;}
+.user-chip b{color:var(--text);font-weight:600;display:block;}
+.btn-logout{background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-logout:hover{border-color:var(--danger);color:var(--danger);}
+
+main{flex:1;max-width:520px;width:100%;margin:0 auto;padding:20px 16px 60px;}
+.wide main{max-width:960px;}
+
+h1,h2,h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;margin:0 0 4px;letter-spacing:0.3px;}
+h1{font-size:30px;}
+h2{font-size:22px;}
+h3{font-size:17px;}
+.subtitle{color:var(--text-dim);font-size:14px;margin:0 0 20px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.card-flush{padding:0;overflow:hidden;}
+
+label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.6px;margin:14px 0 6px;}
+label:first-child{margin-top:0;}
+input[type=text],input[type=password],input[type=number],select{
+  width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+  padding:12px;border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;
+}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+.hint{font-size:12px;color:var(--text-dim);margin-top:6px;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--accent);color:#1a1200;border:none;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:0.4px;
+  padding:13px 20px;border-radius:8px;cursor:pointer;width:100%;min-height:48px;
+  transition:transform .05s ease, background .15s ease;}
+.btn:hover{background:#ff8a37;}
+.btn:active{transform:scale(0.98);}
+.btn:disabled{background:var(--surface-2);color:var(--text-dim);cursor:not-allowed;}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{background:#31363f;}
+.btn-sm{padding:8px 12px;font-size:14px;min-height:36px;width:auto;}
+
+.error-box{background:rgba(229,72,77,0.12);border:1px solid var(--danger);color:#ffb3b5;padding:10px 12px;border-radius:8px;font-size:13px;margin:12px 0;}
+.success-box{background:rgba(62,207,126,0.12);border:1px solid var(--success);color:#a6f0c6;padding:10px 12px;border-radius:8px;font-size:13px;margin:12px 0;}
+.info-box{background:rgba(255,122,26,0.1);border:1px solid var(--accent-dim);color:#ffcda3;padding:10px 12px;border-radius:8px;font-size:13px;margin:12px 0;}
+
+.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  padding:5px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.4px;}
+.status-badge.in{background:rgba(62,207,126,0.15);color:var(--success);}
+.status-badge.out{background:rgba(245,197,24,0.15);color:var(--hazard);}
+.status-badge.none{background:var(--surface-2);color:var(--text-dim);}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+
+.mark-circle{width:170px;height:170px;border-radius:50%;margin:22px auto;
+  background:radial-gradient(circle at 35% 30%, #ff9448, var(--accent) 60%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#1a1200;cursor:pointer;border:none;font-family:'Barlow Condensed',sans-serif;
+  box-shadow:0 0 0 6px rgba(255,122,26,0.12), 0 10px 30px rgba(255,122,26,0.25);
+  transition:transform .08s ease;}
+.mark-circle:active{transform:scale(0.97);}
+.mark-circle:disabled{background:var(--surface-2);color:var(--text-dim);box-shadow:none;cursor:not-allowed;}
+.mark-circle.checkout{background:radial-gradient(circle at 35% 30%, #ffe07d, var(--hazard) 60%);}
+.mark-circle .big{font-size:26px;font-weight:800;letter-spacing:0.5px;}
+.mark-circle .small{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:2px;}
+.geo-line{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-dim);font-size:13px;margin-top:4px;}
+
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+td{padding:10px 14px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+.muted{color:var(--text-dim);}
+
+.tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--surface-2);padding:4px;border-radius:10px;}
+.tab{flex:1;text-align:center;padding:9px 6px;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.3px;cursor:pointer;color:var(--text-dim);}
+.tab.active{background:var(--accent);color:#1a1200;}
+
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.list-item{padding:14px;border-bottom:1px solid var(--border);}
+.list-item:last-child{border-bottom:none;}
+.list-item-title{font-weight:600;font-size:15px;}
+.list-item-sub{font-size:13px;color:var(--text-dim);margin-top:2px;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.stat .num{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--accent);}
+.stat .lab{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;}
+
+.center-screen{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{width:100%;max-width:380px;}
+.spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);border-top-color:currentColor;animation:spin 0.7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;color:var(--text-dim);font-family:'Barlow Condensed',sans-serif;font-size:18px;gap:10px;}
+.empty-state{text-align:center;padding:30px 16px;color:var(--text-dim);font-size:14px;}
+
+.map-picker{height:280px;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-top:10px;}
+.map-hint{font-size:12px;color:var(--text-dim);margin-top:6px;}
+.coord-readout{display:flex;gap:16px;margin-top:10px;font-size:13px;color:var(--text-dim);}
+.coord-readout b{color:var(--text);}
+
+::selection{background:var(--accent);color:#1a1200;}
+/* ==========================================================================
+  📱 MOBILE RESPONSIVE UI GRAPHICS & LAYOUT HARDENING
+   ========================================================================== */
+@media (max-width: 640px) {
+  body {
+    padding: 12px;
   }
 
-  return (
-    <div className="glass-header">
-      {/* The modern gradient stripes live inside the sticky header now */}
-      <div className="glass-stripes"></div>
-      
-      <div className="glass-topbar-content">
-        <div className="glass-brand">
-          <div className="glass-brand-sub">SiteTrack App</div>
-          <div className="glass-brand-title">
-            Welcome, {user ? user.name.split(" ")[0] : 'Worker'}
-          </div>
-        </div>
+  h1 {
+    font-size: 1.8rem !important;
+    margin-bottom: 4px !important;
+  }
 
-        {user && (
-          <div className="topbar-right">
-            <div className="glass-status-pill">
-              {/* Reusing your CSS spinner animation for a live pulse effect */}
-              <span className="spinner" style={{ width: '8px', height: '8px', borderWidth: '2px', borderColor: 'var(--success)', borderTopColor: 'transparent' }}></span>
-              {user.role === "admin" ? "Admin" : "On Site"}
-            </div>
-            <button className="btn-logout" onClick={handleLogout}>Log out</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  .subtitle {
+    font-size: 0.95rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Stack admin statistics into a tight column block */
+  .stat-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .stat {
+    padding: 16px !important;
+  }
+
+  .stat .num {
+    font-size: 2rem !important;
+  }
+
+  /* Make containers fit edge-to-edge seamlessly */
+  .card {
+    padding: 16px !important;
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Convert strict tabular grids into scrollable horizontal cards on small screens */
+  .card-flush {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 480px !important; /* Forces layout to remain legible without clipping columns */
+  }
+
+  th, td {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+  }
+
+  /* Scale the primary check-in dial down slightly so it sits comfortably without scrolling */
+  .mark-circle {
+    width: 180px !important;
+    height: 180px !important;
+    margin: 24px auto !important;
+  }
+
+  .mark-circle .big {
+    font-size: 1.4rem !important;
+  }
+
+  /* Fix Leaflet map search bar covering crucial interface targets */
+  .leaflet-geosearch-bar {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+}
+
+/* =========================================================
+   MODERN GLASSMORPHIC HEADER 
+   ========================================================= */
+.glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(30, 33, 38, 0.75); /* Uses a transparent version of your surface color */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-stripes {
+  height: 6px;
+  width: 100%;
+  flex-shrink: 0;
+  /* Brings back your exact yellow & black construction look! */
+  background: repeating-linear-gradient(135deg, var(--hazard) 0 14px, #1a1c1f 14px 28px);
+}
+
+.glass-topbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.wide .glass-topbar-content {
+  max-width: 960px;
+}
+
+.glass-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.glass-brand-sub {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.glass-brand-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.glass-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(62, 207, 126, 0.15);
+  border: 1px solid rgba(62, 207, 126, 0.3);
+  color: var(--success);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   DARK THEME MAP LEAFLET SEARCH OVERRIDES
+   ========================================================= */
+.leaflet-geosearch-bar,
+.leaflet-geosearch-form,
+.leaflet-geosearch-form input {
+  background-color: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+}
+
+.leaflet-geosearch-form input::placeholder {
+  color: var(--text-dim) !important;
+}
+
+.leaflet-geosearch-bar a.reset {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-left: 1px solid var(--border) !important;
+  border-radius: 0 6px 6px 0 !important;
+}
+
+.leaflet-geosearch-bar a.reset:hover {
+  background: var(--border) !important;
+}
+
+.results.leaflet-bar {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+.results.leaflet-bar > * {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.results.leaflet-bar > *:hover {
+  background: var(--surface-2) !important;
+  color: var(--accent) !important;
 }
