@@ -13,21 +13,34 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState("overview");
 
   return (
-    <>
-      <h1>Admin dashboard</h1>
-      <p className="subtitle">Manage sites, workers, and attendance.</p>
+    <div className="w-full space-y-6">
+      <div>
+        <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Admin Dashboard</h1>
+        <p className="font-body-md text-sm text-on-surface-variant mt-1">Manage sites, worker credentials, and automatic geofence rosters.</p>
+      </div>
 
-      <div className="tabs">
+      {/* Modern High-Contrast Dynamic Tab Selector Row */}
+      <div className="bg-surface-container-high p-1 rounded-xl flex max-w-md w-full border border-outline-variant">
         {TABS.map((t) => (
-          <div key={t.id} className={`tab ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex-1 py-2 text-center rounded-lg font-label-caps text-sm uppercase tracking-wider font-bold transition-all ${
+              tab === t.id
+                ? "bg-primary-container text-on-primary shadow-md"
+                : "text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
             {t.label}
-          </div>
+          </button>
         ))}
       </div>
 
-      {tab === "overview" && <OverviewTab />}
-      {tab === "workers" && <WorkersTab />}
-      {tab === "sites" && <SitesTab />}
-    </>
+      <div className="pt-2">
+        {tab === "overview" && <OverviewTab />}
+        {tab === "workers" && <WorkersTab />}
+        {tab === "sites" && <SitesTab />}
+      </div>
+    </div>
   );
 }

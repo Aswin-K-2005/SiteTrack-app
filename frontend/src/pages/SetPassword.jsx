@@ -35,26 +35,39 @@ export default function SetPassword() {
   }
 
   return (
-    <div className="center-screen">
-      <form className="card login-card" onSubmit={handleSubmit}>
-        <h1>Set your password</h1>
-        <p className="subtitle">
-          {user ? `Welcome, ${user.name.split(" ")[0]}. ` : ""}
-          This is your first sign-in. Choose a new password to continue.
-        </p>
-
-        {error && <div className="error-box">{error}</div>}
-
-        <label htmlFor="pw1">New password</label>
-        <input id="pw1" type="password" placeholder="At least 6 characters" value={pw1} onChange={(e) => setPw1(e.target.value)} />
-        <label htmlFor="pw2">Confirm password</label>
-        <input id="pw2" type="password" placeholder="Re-enter password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
-
-        <div style={{ marginTop: 20 }}>
-          <button className="btn" type="submit" disabled={busy}>
-            {busy ? "Saving…" : "Save & continue"}
-          </button>
+    <div className="min-h-[70vh] flex items-center justify-center px-4 w-full">
+      <form className="bg-surface-container rounded-xl border border-outline-variant p-6 max-w-sm w-full relative overflow-hidden space-y-4" onSubmit={handleSubmit}>
+        <div className="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+        
+        <div>
+          <h1 className="font-headline-lg text-2xl uppercase tracking-tight text-on-surface">Set Secure Passcode</h1>
+          <p className="font-body-md text-xs text-on-surface-variant mt-1">
+            {user ? `Welcome, ${user.name.split(" ")[0]}. ` : ""}
+            Initialize a permanent access key for your worker ID.
+          </p>
         </div>
+
+        {error && <div className="bg-error-container/20 border-l-4 border-error p-3 text-xs text-error font-bold">{error}</div>}
+
+        <div className="space-y-1">
+          <label htmlFor="pw1" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">New Password</label>
+          <input 
+            id="pw1" type="password" placeholder="Minimum 6 characters" value={pw1} onChange={(e) => setPw1(e.target.value)} 
+            className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="pw2" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Confirm Password</label>
+          <input 
+            id="pw2" type="password" placeholder="Re-enter password" value={pw2} onChange={(e) => setPw2(e.target.value)} 
+            className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30 text-sm"
+          />
+        </div>
+
+        <button type="submit" disabled={busy} className="w-full bg-primary-container text-on-primary font-bold py-3 mt-2 rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50">
+          {busy ? "Saving Configuration..." : "Save & Synchronize"}
+        </button>
       </form>
     </div>
   );
