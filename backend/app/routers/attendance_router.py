@@ -14,9 +14,9 @@ router = APIRouter(prefix="/attendance", tags=["attendance"])
 
 
 def _to_out(r: AttendanceRecord) -> AttendanceOut:
-    # Force the datetime object to preserve its localized zone details explicitly over the network pipe
+    # Explicitly tell the system this clock time is already locked to Indian Standard Time hours
     tz_kolkata = ZoneInfo("Asia/Kolkata")
-    localized_ts = r.timestamp.astimezone(tz_kolkata) if r.timestamp.tzinfo else r.timestamp.replace(tzinfo=tz_kolkata)
+    localized_ts = r.timestamp.replace(tzinfo=tz_kolkata)
     
     return AttendanceOut(
         id=r.id, 
@@ -71,11 +71,14 @@ def mark_attendance(
 
     record_type = AttendanceType.check_out if has_in else AttendanceType.check_in
 
+    # Strip the timezone offset so SQLite saves the exact local clock numbers directly
+    naive_ist_now = now_ist.replace(tzinfo=None)
+
     record = AttendanceRecord(
         user_id=current_user.id,
         site_id=site.id,
         type=record_type,
-        timestamp=now_ist,
+        timestamp=naive_ist_now,
         record_date=today,
         distance_m=dist,
     )
@@ -102,7 +105,6 @@ def my_history(
 
 @router.get("/today", response_model=list[TodayStatus])
 def today_overview(db: Session = Depends(get_db), _admin: User = Depends(require_admin)):
-    # Fix: Ensure admin overview targets matching localized dynamic dates
     tz_kolkata = ZoneInfo("Asia/Kolkata")
     today = datetime.now(tz_kolkata).date()
     
@@ -125,9 +127,8 @@ def today_overview(db: Session = Depends(get_db), _admin: User = Depends(require
         else:
             status_val, last_time = "not_checked_in", None
 
-        # Apply same localized timestamp logic for active dashboard logs
         if last_time:
-            last_time = last_time.astimezone(tz_kolkata) if last_time.tzinfo else last_time.replace(tzinfo=tz_kolkata)
+            last_time = last_time.replace(tzinfo=tz_kolkata)
 
         result.append(TodayStatus(
             user_id=w.id, name=w.name, username=w.username,
@@ -145,4 +146,4 @@ def recent_log(db: Session = Depends(get_db), _admin: User = Depends(require_adm
         .limit(50)
         .all()
     )
-    return [_to_out(r) for r in records] 
+    return [_to_out(r) for r in records]
