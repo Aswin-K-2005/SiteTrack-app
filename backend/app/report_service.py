@@ -1,71 +1,90 @@
 import pandas as pd
 import resend
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 
-# --- FIXED IMPORTS & MODEL NAMES ---
-from app.models import User, AttendanceRecord, Site 
+from app.models import User, AttendanceRecord, Role 
 from app.config import settings
 
 # Pull the API key securely from your env
 resend.api_key = settings.resend_api_key
 
 def generate_and_email_monthly_report(db: Session):
-    print("Generating monthly attendance spreadsheet...")
+    print("Generating monthly payroll summary spreadsheet...")
     
-    # 1. Calculate date range (Last 30 days)
-    end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=30)
+    # 1. Date Range: 1st of the current month to Today (in IST)
+    tz_kolkata = ZoneInfo("Asia/Kolkata")
+    today = datetime.now(tz_kolkata).date()
+    start_date = today.replace(day=1) # The 1st of the current month
     
-    # 2. Query attendance data using AttendanceRecord
-    logs = db.query(AttendanceRecord, User, Site).join(
-        User, AttendanceRecord.user_id == User.id
-    ).join(
-        Site, AttendanceRecord.site_id == Site.id
-    ).filter(
-        AttendanceRecord.timestamp >= start_date,
-        AttendanceRecord.timestamp <= end_date
-    ).all()
+    # Generate a list of all dates from the 1st to today
+    delta = today - start_date
+    all_dates = [start_date + timedelta(days=i) for i in range(delta.days + 1)]
     
-    if not logs:
-        print("No attendance data for this month. Skipping report.")
+    # 2. Get ALL workers (so we don't miss anyone who was absent all month)
+    workers = db.query(User).filter(User.role == Role.worker).all()
+    
+    if not workers:
+        print("No workers found. Skipping report.")
         return
 
-    # 3. Format data for the spreadsheet
+    # 3. Get all attendance records for this month
+    attendances = db.query(AttendanceRecord).filter(
+        AttendanceRecord.record_date >= start_date,
+        AttendanceRecord.record_date <= today
+    ).all()
+    
+    # Create a fast lookup set of (user_id, date) who showed up
+    # Using a set handles multiple check-ins automatically (they just count as 1 Present)
+    presence_map = set((a.user_id, a.record_date) for a in attendances)
+    
+    # 4. Build the Payroll Grid
     report_data = []
-    for attendance, user, site in logs:
-        # Extract the enum value if 'type' is stored as an Enum
-        action_type = attendance.type.value if hasattr(attendance.type, 'value') else attendance.type
+    for w in workers:
+        row = {
+            "Worker Name": w.name,
+            "Username": w.username,
+        }
         
-        report_data.append({
-            "Date": attendance.timestamp.strftime("%Y-%m-%d"),
-            "Time": attendance.timestamp.strftime("%H:%M:%S"),
-            "Worker Name": user.name,
-            "Worker Username": user.username,
-            "Job Site": site.name,
-            "Action": action_type, 
-            "Distance from Center (m)": getattr(attendance, 'distance_m', 'N/A') # Fixed to distance_m
-        })
+        present_count = 0
+        absent_count = 0
         
-    # 4. Generate Spreadsheet (CSV)
+        # Check every day of the month so far
+        for d in all_dates:
+            date_label = d.strftime("%d %b") # Format like "01 Jul", "02 Jul"
+            if (w.id, d) in presence_map:
+                row[date_label] = "P"  # Present
+                present_count += 1
+            else:
+                row[date_label] = "A"  # Absent
+                absent_count += 1
+        
+        # Add the totals at the end of the row for easy salary calculation
+        row["Total Present"] = present_count
+        row["Total Leaves (Absent)"] = absent_count
+        
+        report_data.append(row)
+        
+    # 5. Generate Spreadsheet (CSV)
     df = pd.DataFrame(report_data)
     csv_string = df.to_csv(index=False)
     
-    # 5. Base64 Encode the file for email attachment
+    # 6. Base64 Encode the file for email attachment
     b64_content = base64.b64encode(csv_string.encode('utf-8')).decode('utf-8')
     
-    # 6. Dispatch the Email via Resend
+    # 7. Dispatch the Email via Resend
     month_name = start_date.strftime("%B %Y")
     
     params = {
         "from": "SiteTrack Reports <onboarding@resend.dev>",
         "to": ["aswin.kss2005@gmail.com"], 
-        "subject": f"AA&S Constructions - Monthly Attendance Report ({month_name})",
-        "html": f"<h3>Monthly SiteTrack Report</h3><p>Attached is the automated worker attendance spreadsheet for {month_name}.</p>",
+        "subject": f"AA&S Constructions - Payroll & Leave Summary ({month_name})",
+        "html": f"<h3>Monthly Payroll & Leave Summary</h3><p>Attached is the daily attendance breakdown and leave calculation for {month_name}, up to {today.strftime('%d %b')}.</p>",
         "attachments": [
             {
-                "filename": f"Attendance_Report_{month_name}.csv",
+                "filename": f"Payroll_Summary_{month_name}.csv",
                 "content": b64_content
             }
         ]
