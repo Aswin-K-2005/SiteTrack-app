@@ -9,10 +9,11 @@ import Home from "./pages/Home";
 function Layout({ children }) {
   const { user } = useAuth();
   return (
-    <div className={user?.role === "admin" ? "wide" : ""} style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      {/* Removed the static hazard-bar from here */}
+    <div className="min-h-screen flex flex-col bg-background text-on-surface font-body-md select-none">
       <Topbar />
-      <main>{children}</main>
+      <main className={`flex-grow w-full mx-auto px-6 pt-24 pb-12 ${user?.role === "admin" ? "max-w-7xl" : "max-w-xl"}`}>
+        {children}
+      </main>
     </div>
   );
 }
