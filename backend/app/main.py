@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi import FastAPI, HTTPException, Header
 from app.config import settings
 from app.database import Base, engine, SessionLocal
 from app.models import User, Role
 from app.auth import hash_password
 from app.routers import auth_router, users_router, sites_router, attendance_router
+from app.report_service import generate_and_email_monthly_report
 
 # Initialize database schema components
 Base.metadata.create_all(bind=engine)
@@ -55,7 +57,20 @@ app.include_router(auth_router.router)
 app.include_router(users_router.router)
 app.include_router(sites_router.router)
 app.include_router(attendance_router.router)
-
+# --- NEW SECURE WEBHOOK ROUTE ---
+@app.get("/api/admin/trigger-monthly-report")
+def trigger_report(authorization: str = Header(None)):
+    # 1. Verify the secret token from the external cron job
+    if authorization != f"Bearer {settings.cron_secret}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    # 2. Open DB and run the report logic
+    db = SessionLocal()
+    try:
+        generate_and_email_monthly_report(db)
+        return {"status": "success", "message": "Monthly report triggered and sent!"}
+    finally:
+        db.close()
 @app.get("/health")
 def health():
     return {"status": "ok"}

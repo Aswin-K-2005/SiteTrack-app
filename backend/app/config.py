@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     default_admin_username: str = "admin"
     default_admin_password: str = "admin123"
 
+    cron_secret: str
+    resend_api_key: str
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
