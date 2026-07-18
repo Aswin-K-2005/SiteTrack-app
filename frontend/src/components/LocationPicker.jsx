@@ -77,20 +77,34 @@ export default function LocationPicker({ value, radius = 150, onChange }) {
         setLocating(false);
       },
       () => setLocating(false),
-      { enableHighAccuracy: true, timeout: 12000 }
+      // Relaxed accuracy rules + longer timeout window prevents browser throttling locks
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   }
 
   return (
     <div>
-      <div className="row-between" style={{ marginTop: 14 }}>
-        <label style={{ margin: 0 }}>Site location</label>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={useMyLocation} disabled={locating}>
-          {locating ? "Locating…" : "📍 Use my location"}
+      {/* Polished, well-spaced header bar aligning with industrial form aesthetics */}
+      <div className="flex items-center justify-between mb-2">
+        <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block m-0">
+          Site Location Target
+        </label>
+        <button 
+          type="button" 
+          className="px-3 py-1 bg-surface-container-high border border-outline-variant text-secondary text-xs font-label-caps tracking-wider rounded hover:bg-surface-container-highest transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-50" 
+          onClick={useMyLocation} 
+          disabled={locating}
+        >
+          {locating ? (
+            <span className="animate-spin rounded-full h-3 w-3 border-2 border-secondary border-t-transparent"></span>
+          ) : (
+            <span className="text-sm">📍</span>
+          )}
+          {locating ? "LOCATING SYSTEM..." : "USE MY LOCATION"}
         </button>
       </div>
 
-        <div className="h-[350px] w-full rounded-xl overflow-hidden border border-outline-variant mt-2">       
+      <div className="h-[350px] w-full rounded-xl overflow-hidden border border-outline-variant mt-2">        
         {/* key forces a remount when we jump to a new center via "use my location" or address selection so the view recenters */}
         <MapContainer
           key={value ? `${value.lat.toFixed(4)}-${value.lng.toFixed(4)}` : "empty"}
@@ -120,12 +134,15 @@ export default function LocationPicker({ value, radius = 150, onChange }) {
           )}
         </MapContainer>
       </div>
-      <div className="map-hint">🔍 Search an address inside the map or tap anywhere to drop the site pin.</div>
+      
+      <div className="text-[11px] text-on-surface-variant/70 italic mt-2">
+        🔍 Search an address inside the map or tap anywhere to drop the site pin.
+      </div>
 
       {value && (
-        <div className="coord-readout">
-          <span>Lat: <b>{value.lat.toFixed(6)}</b></span>
-          <span>Lng: <b>{value.lng.toFixed(6)}</b></span>
+        <div className="mt-3 flex items-center gap-4 bg-surface-container-low border border-outline-variant p-2 rounded-lg text-xs font-body-md text-on-surface-variant">
+          <span>Lat: <b className="text-on-surface font-mono">{value.lat.toFixed(6)}</b></span>
+          <span>Lng: <b className="text-on-surface font-mono">{value.lng.toFixed(6)}</b></span>
         </div>
       )}
     </div>
