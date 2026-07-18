@@ -3,9 +3,10 @@ import resend
 import base64
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from models import User, Attendance, Site # Adjust imports to match your project
 
-from app.config import settings # <-- Import settings
+# --- FIXED IMPORTS & MODEL NAMES ---
+from app.models import User, AttendanceRecord, Site 
+from app.config import settings
 
 # Pull the API key securely from your env
 resend.api_key = settings.resend_api_key
@@ -17,14 +18,14 @@ def generate_and_email_monthly_report(db: Session):
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=30)
     
-    # 2. Query attendance data joined with user and site info
-    logs = db.query(Attendance, User, Site).join(
-        User, Attendance.user_id == User.id
+    # 2. Query attendance data using AttendanceRecord
+    logs = db.query(AttendanceRecord, User, Site).join(
+        User, AttendanceRecord.user_id == User.id
     ).join(
-        Site, Attendance.site_id == Site.id
+        Site, AttendanceRecord.site_id == Site.id
     ).filter(
-        Attendance.timestamp >= start_date,
-        Attendance.timestamp <= end_date
+        AttendanceRecord.timestamp >= start_date,
+        AttendanceRecord.timestamp <= end_date
     ).all()
     
     if not logs:
@@ -34,13 +35,17 @@ def generate_and_email_monthly_report(db: Session):
     # 3. Format data for the spreadsheet
     report_data = []
     for attendance, user, site in logs:
+        # Extract the enum value if 'type' is stored as an Enum
+        action_type = attendance.type.value if hasattr(attendance.type, 'value') else attendance.type
+        
         report_data.append({
             "Date": attendance.timestamp.strftime("%Y-%m-%d"),
             "Time": attendance.timestamp.strftime("%H:%M:%S"),
-            "Worker Name": user.username,
+            "Worker Name": user.name,
+            "Worker Username": user.username,
             "Job Site": site.name,
-            "Action": attendance.type, # "IN" or "OUT"
-            "Distance from Center (m)": attendance.distance_meters
+            "Action": action_type, 
+            "Distance from Center (m)": getattr(attendance, 'distance_m', 'N/A') # Fixed to distance_m
         })
         
     # 4. Generate Spreadsheet (CSV)
@@ -54,8 +59,8 @@ def generate_and_email_monthly_report(db: Session):
     month_name = start_date.strftime("%B %Y")
     
     params = {
-        "from": "SiteTrack Reports <onboarding@resend.dev>", # Update to your verified domain later
-        "to": ["sathoshkumarss@aaands.construction"], # Who receives the report
+        "from": "SiteTrack Reports <onboarding@resend.dev>",
+        "to": ["sathoshkumarss@aaands.construction"], 
         "subject": f"AA&S Constructions - Monthly Attendance Report ({month_name})",
         "html": f"<h3>Monthly SiteTrack Report</h3><p>Attached is the automated worker attendance spreadsheet for {month_name}.</p>",
         "attachments": [
@@ -68,6 +73,6 @@ def generate_and_email_monthly_report(db: Session):
     
     try:
         email_response = resend.Emails.send(params)
-        print(f"Monthly report emailed successfully! ID: {email_response['id']}")
+        print(f"Monthly report emailed successfully! ID: {email_response.get('id')}")
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
