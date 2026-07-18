@@ -103,8 +103,7 @@ export default function LocationPicker({ value, radius = 150, onChange }) {
           {locating ? "LOCATING SYSTEM..." : "USE MY LOCATION"}
         </button>
       </div>
-
-      <div className="h-[350px] w-full rounded-xl overflow-hidden border border-outline-variant mt-2">        
+        <div className="h-[350px] w-full rounded-xl overflow-hidden border border-outline-variant mt-2">        
         {/* key forces a remount when we jump to a new center via "use my location" or address selection so the view recenters */}
         <MapContainer
           key={value ? `${value.lat.toFixed(4)}-${value.lng.toFixed(4)}` : "empty"}
