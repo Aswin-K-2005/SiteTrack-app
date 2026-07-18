@@ -10,7 +10,7 @@ function Layout({ children }) {
   const { user } = useAuth();
   return (
     <div className={user?.role === "admin" ? "wide" : ""} style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <div className="hazard-bar"></div>
+      {/* Removed the static hazard-bar from here */}
       <Topbar />
       <main>{children}</main>
     </div>

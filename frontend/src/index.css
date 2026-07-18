@@ -200,3 +200,68 @@ tr:last-child td{border-bottom:none;}
     max-width: 280px !important;
   }
 }
+
+/* =========================================================
+   MODERN GLASSMORPHIC HEADER 
+   ========================================================= */
+.glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(30, 33, 38, 0.75); /* Uses a transparent version of your surface color */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-stripes {
+  height: 6px;
+  width: 100%;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, var(--success));
+}
+
+.glass-topbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.wide .glass-topbar-content {
+  max-width: 960px;
+}
+
+.glass-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.glass-brand-sub {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a855f7;
+}
+
+.glass-brand-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.glass-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(62, 207, 126, 0.15);
+  border: 1px solid rgba(62, 207, 126, 0.3);
+  color: var(--success);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
