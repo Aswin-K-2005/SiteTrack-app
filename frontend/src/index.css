@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @config "../tailwind.config.cjs";
+
 /* =========================================================
    DARK THEME MAP LEAFLET SEARCH & ZOOM OVERRIDES
    ========================================================= */
@@ -50,6 +51,17 @@
   border: 1px solid #374151 !important;
 }
 
+/* =========================================================
+   MOBILE OVERFLOW & MOBILE LAYERING CONTAINMENT FIXES
+   ========================================================= */
 .leaflet-container {
   background: #0c1322 !important;
+}
+
+/* Force the map container and all its internal panes below the Topbar navigation layer */
+.leaflet-container,
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
 }
