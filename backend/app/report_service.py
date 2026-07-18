@@ -60,7 +60,7 @@ def generate_and_email_monthly_report(db: Session):
     
     params = {
         "from": "SiteTrack Reports <onboarding@resend.dev>",
-        "to": ["sathoshkumarss@aaands.construction"], 
+        "to": ["santhoshkumarss@aaands.construction"], 
         "subject": f"AA&S Constructions - Monthly Attendance Report ({month_name})",
         "html": f"<h3>Monthly SiteTrack Report</h3><p>Attached is the automated worker attendance spreadsheet for {month_name}.</p>",
         "attachments": [
