@@ -30,13 +30,17 @@ class Site(Base):
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     radius_m = Column(Integer, nullable=False, default=150)
+    
+    # THE NEW ARCHIVE FLAG
+    is_archived = Column(Boolean, default=False, nullable=False)
+    
     created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Kolkata")))
     
-    # Updated relationship
     users = relationship("User", secondary=user_sites, back_populates="sites")
     attendance_records = relationship("AttendanceRecord", back_populates="site")
 
 class User(Base):
+
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(120), nullable=False)
