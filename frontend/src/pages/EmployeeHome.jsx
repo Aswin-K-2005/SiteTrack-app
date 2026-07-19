@@ -154,7 +154,7 @@ export default function EmployeeHome() {
           {error && <div className="bg-error-container/20 border-l-4 border-error p-3 text-xs text-error">{error}</div>}
           {info && <div className="bg-[#1a2e21] border-l-4 border-secondary p-3 text-xs text-[#4edea3]">{info}</div>}
 
-          {/* FIX: Dynamic Workstations Grid replaces the static text input */}
+          {/* Dynamic Workstations Grid replaces the static text input */}
           <div className="mt-4">
               <h2 className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-2 uppercase">Your Workstations</h2>
               
@@ -178,8 +178,9 @@ export default function EmployeeHome() {
                                   
                                   {/* Real-time Badge */}
                                   {isOnSite ? (
-                                      <span className="bg-[#1a2e21] text-[#4edea3] px-2 py-1 rounded text-[10px] font-bold tracking-wide border border-secondary/30">
-                                          ✅ ON SITE
+                                      <span className="bg-[#1a2e21] text-[#4edea3] px-2.5 py-1 rounded text-[10px] font-bold tracking-wide border border-secondary/30 flex items-center gap-1.5">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                                          ON SITE
                                       </span>
                                   ) : (
                                       <span className="bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded text-[10px] font-bold">
