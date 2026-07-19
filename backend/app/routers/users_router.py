@@ -5,11 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.auth import require_admin, hash_password, get_current_user
 from app.database import get_db
-from app.models import User, Role
+from app.models import User, Role,Site
 from app.schemas import UserCreate, UserOut, PasswordResetOut
 
 router = APIRouter(prefix="/users", tags=["users"])
-
 
 def _to_user_out(u: User) -> UserOut:
     return UserOut(
@@ -18,10 +17,8 @@ def _to_user_out(u: User) -> UserOut:
         username=u.username,
         role=u.role,
         must_change_password=u.must_change_password,
-        site_id=u.site_id,
-        site_name=u.site.name if u.site else None,
+        sites=u.sites, # <-- Now we just pass the whole list of sites!
     )
-
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
@@ -43,20 +40,24 @@ def create_worker(
     existing = db.query(User).filter(User.username == payload.username).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
-
+        
     worker = User(
         name=payload.name,
         username=payload.username,
         hashed_password=hash_password(payload.password),
         role=Role.worker,
         must_change_password=True,
-        site_id=payload.site_id,
     )
+    
+    # Associate multiple sites if provided
+    if payload.site_ids:
+        assigned_sites = db.query(Site).filter(Site.id.in_(payload.site_ids)).all()
+        worker.sites = assigned_sites
+
     db.add(worker)
     db.commit()
     db.refresh(worker)
     return _to_user_out(worker)
-
 
 @router.post("/{user_id}/reset-password", response_model=PasswordResetOut)
 def reset_password(

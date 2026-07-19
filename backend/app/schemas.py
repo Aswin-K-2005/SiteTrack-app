@@ -47,18 +47,16 @@ class SiteOut(BaseModel):
 
 USERNAME_PATTERN = r"^[a-zA-Z0-9_.]{3,60}$"
 
-
 class UserCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     username: str = Field(pattern=USERNAME_PATTERN)
     password: str = Field(min_length=6, max_length=128)
-    site_id: Optional[int] = None
+    site_ids: list[int] = Field(default_factory=list) # <-- Changed to a list!
 
     @field_validator("username")
     @classmethod
     def lowercase_username(cls, v: str) -> str:
         return v.lower()
-
 
 class UserOut(BaseModel):
     id: int
@@ -66,11 +64,8 @@ class UserOut(BaseModel):
     username: str
     role: Role
     must_change_password: bool
-    site_id: Optional[int] = None
-    site_name: Optional[str] = None
-
+    sites: list[SiteOut] = Field(default_factory=list) # <-- Changed to output a list of full sites!
     model_config = ConfigDict(from_attributes=True)
-
 
 class PasswordResetOut(BaseModel):
     username: str

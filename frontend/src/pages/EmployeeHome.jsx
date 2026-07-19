@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import client, { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { calculateDistance } from "../utils/geo"; // <-- Import the math function!
 
-// Geolocation helper function
+// Geolocation helper function for submitting attendance
 function getPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -34,6 +35,10 @@ export default function EmployeeHome() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  
+  // FIX: State for continuous real-time GPS tracking
+  const [currentLat, setCurrentLat] = useState(null);
+  const [currentLon, setCurrentLon] = useState(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -46,14 +51,30 @@ export default function EmployeeHome() {
     }
   }, []);
 
-  useEffect(() => { loadHistory(); }, [loadHistory]);
+  // Watch position continuously for the Workstations grid
+  useEffect(() => {
+    loadHistory();
+    
+    if (navigator.geolocation) {
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                setCurrentLat(pos.coords.latitude);
+                setCurrentLon(pos.coords.longitude);
+            },
+            (err) => console.warn("Live tracking issue:", err),
+            { enableHighAccuracy: true, maximumAge: 10000 }
+        );
+        return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [loadHistory]);
 
   const targetFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
   const today = targetFormatter.format(new Date()); 
+
   const todaysRecords = history.filter((r) => r.record_date === today);
-  
   const hasIn = todaysRecords.find((r) => r.type === "check_in" || r.type === "in");
   const hasOut = todaysRecords.find((r) => r.type === "check_out" || r.type === "out");
+
   const willCheckout = !!hasIn && !hasOut;
   const done = !!hasIn && !!hasOut;
 
@@ -96,6 +117,7 @@ export default function EmployeeHome() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
         {/* Left Column: Controls & Status */}
         <div className="lg:col-span-5 space-y-6">
           
@@ -132,15 +154,47 @@ export default function EmployeeHome() {
           {error && <div className="bg-error-container/20 border-l-4 border-error p-3 text-xs text-error">{error}</div>}
           {info && <div className="bg-[#1a2e21] border-l-4 border-secondary p-3 text-xs text-[#4edea3]">{info}</div>}
 
-          {/* Site Specification Panel */}
-          <div className="bg-surface-container border border-outline-variant p-4">
-            <label className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-2">ASSIGNED CONSTRUCTION SITE</label>
-            <div className="relative">
-              <div className="w-full bg-surface-container-low border border-outline-variant text-on-surface font-body-md p-3 focus-within:border-primary-container pr-10">
-                {user?.site_name || "No Site Assigned"}
-              </div>
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-sm font-bold">LOCKED</span>
-            </div>
+          {/* FIX: Dynamic Workstations Grid replaces the static text input */}
+          <div className="mt-4">
+              <h2 className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-2 uppercase">Your Workstations</h2>
+              
+              {user?.sites?.length > 0 ? (
+                  <div className="space-y-3">
+                      {user.sites.map(site => {
+                          const distance = calculateDistance(
+                              currentLat, 
+                              currentLon, 
+                              site.latitude, 
+                              site.longitude
+                          );
+                          const isOnSite = distance !== null && distance <= site.radius_m;
+
+                          return (
+                              <div key={site.id} className="p-4 bg-surface-container-low border border-outline-variant rounded-lg flex justify-between items-center">
+                                  <div>
+                                      <h3 className="font-bold text-on-surface text-sm">{site.name}</h3>
+                                      <p className="text-[10px] text-on-surface-variant uppercase mt-1">Radius: {site.radius_m}m</p>
+                                  </div>
+                                  
+                                  {/* Real-time Badge */}
+                                  {isOnSite ? (
+                                      <span className="bg-[#1a2e21] text-[#4edea3] px-2 py-1 rounded text-[10px] font-bold tracking-wide border border-secondary/30">
+                                          ✅ ON SITE
+                                      </span>
+                                  ) : (
+                                      <span className="bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded text-[10px] font-bold">
+                                          {distance !== null ? `${Math.round(distance)}m away` : 'Locating...'}
+                                      </span>
+                                  )}
+                              </div>
+                          );
+                      })}
+                  </div>
+              ) : (
+                  <div className="p-4 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant/70 text-sm">
+                      You have not been assigned to any sites yet.
+                  </div>
+              )}
           </div>
 
           {/* Industrial Action Triggers */}
@@ -153,7 +207,7 @@ export default function EmployeeHome() {
               <span className="font-headline-sm text-lg uppercase tracking-wider">Check In</span>
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>
-
+            
             <button
               onClick={() => handleMark("out")}
               disabled={!willCheckout || busy}
@@ -164,12 +218,6 @@ export default function EmployeeHome() {
             </button>
           </div>
 
-          {/* Warning System Banner */}
-          <div className="bg-surface-container-high border-l-4 border-tertiary p-4 flex gap-4">
-            <div>
-              <p className="font-body-md text-sm text-on-surface">You must be within the geofence boundary of your site to mark attendance.</p>
-            </div>
-          </div>
         </div>
 
         {/* Right Column: Active Log Table */}

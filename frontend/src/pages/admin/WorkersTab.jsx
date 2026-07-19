@@ -5,7 +5,9 @@ export default function WorkersTab() {
   const [workers, setWorkers] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", username: "", password: "", site_id: "" });
+  
+  // FIX: Changed site_id to site_ids array
+  const [form, setForm] = useState({ name: "", username: "", password: "", site_ids: [] });
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,10 +35,10 @@ export default function WorkersTab() {
         name: form.name.trim(),
         username: form.username.trim().toLowerCase(),
         password: form.password,
-        site_id: form.site_id ? Number(form.site_id) : null,
+        site_ids: form.site_ids, // FIX: Pass the array of IDs to the backend
       });
       setSuccess(`Added ${form.name}. Share username "${form.username.trim().toLowerCase()}" and the temporary password with them.`);
-      setForm({ name: "", username: "", password: "", site_id: "" });
+      setForm({ name: "", username: "", password: "", site_ids: [] });
       await load();
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -70,9 +72,10 @@ export default function WorkersTab() {
     }
   }
 
-  // Client side structural lookup filtration matching your design logic
+  // FIX: Update the search filter to map over the sites array
   const filteredWorkers = workers.filter(w => {
-    const matchString = `${w.name} ${w.username} ${w.site_name || "unassigned"} ${w.id}`.toLowerCase();
+    const siteNames = w.sites?.map(s => s.name).join(" ") || "unassigned";
+    const matchString = `${w.name} ${w.username} ${siteNames} ${w.id}`.toLowerCase();
     return matchString.includes(searchTerm.toLowerCase());
   });
 
@@ -99,7 +102,7 @@ export default function WorkersTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label htmlFor="empName" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Full Name</label>
-              <input 
+              <input
                 id="empName" type="text" placeholder="e.g. John Smith" value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30"
@@ -107,7 +110,7 @@ export default function WorkersTab() {
             </div>
             <div className="space-y-1">
               <label htmlFor="empUser" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Username</label>
-              <input 
+              <input
                 id="empUser" type="text" placeholder="e.g. jsmith" value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30"
@@ -118,27 +121,43 @@ export default function WorkersTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label htmlFor="empPass" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Temporary Password</label>
-              <input 
+              <input
                 id="empPass" type="text" placeholder="e.g. Welcome123" value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30"
               />
             </div>
+            
+            {/* FIX: Replaced Select Dropdown with Checkbox List */}
             <div className="space-y-1">
-              <label htmlFor="empSite" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Assign to Site</label>
-              <select 
-                id="empSite" value={form.site_id} onChange={(e) => setForm({ ...form, site_id: e.target.value })}
-                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
-              >
-                <option value="">Select a site location...</option>
-                {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Assign to Sites</label>
+              <div className="max-h-32 overflow-y-auto bg-surface-container-low border border-outline-variant rounded-lg p-2 space-y-2">
+                {sites.length === 0 ? (
+                    <p className="text-xs text-on-surface-variant p-2">No sites available.</p>
+                ) : (
+                    sites.map((s) => (
+                    <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer text-on-surface">
+                        <input
+                            type="checkbox"
+                            value={s.id}
+                            checked={form.site_ids.includes(s.id)}
+                            onChange={(e) => {
+                                const id = Number(e.target.value);
+                                if (e.target.checked) {
+                                    setForm({ ...form, site_ids: [...form.site_ids, id] });
+                                } else {
+                                    setForm({ ...form, site_ids: form.site_ids.filter(sid => sid !== id) });
+                                }
+                            }}
+                            className="accent-primary-container w-4 h-4"
+                        />
+                        {s.name}
+                    </label>
+                    ))
+                )}
+              </div>
             </div>
           </div>
-
-          <p className="text-[11px] text-on-surface-variant/70 italic">
-            {sites.length === 0 ? "⚠️ Add a construction site first in the Sites tab." : "Workers will choose an absolute credential pass key sequence during initial access cycles."}
-          </p>
           
           <button type="submit" disabled={busy} className="w-full bg-primary-container text-on-primary font-bold py-3 rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50">
             {busy ? "Registering..." : "Register Worker Profile"}
@@ -149,10 +168,10 @@ export default function WorkersTab() {
       {/* Control Search Element Bar */}
       <section className="bg-surface-container-high p-4 border border-outline-variant rounded-t-xl flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
-          <input 
-            className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-4 pr-4 py-2 font-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm" 
-            placeholder="Search workers by name, site, or login ID..." 
-            type="text"
+          <input
+             className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-4 pr-4 py-2 font-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm"
+             placeholder="Search workers by name, site, or login ID..."
+             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -167,9 +186,9 @@ export default function WorkersTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-surface-container-highest/50 border-b border-outline-variant">
+              <tr className="bg-surface-container-highest/50 border-b border-outline-variant">
                 <th className="px-6 py-4 font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Worker Details</th>
-                <th className="px-6 py-4 font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Assigned Site Target</th>
+                <th className="px-6 py-4 font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Assigned Sites</th>
                 <th className="px-6 py-4 font-label-caps text-xs text-on-surface-variant uppercase tracking-wider text-center">Lifecycle Status</th>
                 <th className="px-6 py-4 font-label-caps text-xs text-on-surface-variant uppercase tracking-wider text-right">System Configuration</th>
               </tr>
@@ -189,8 +208,9 @@ export default function WorkersTab() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {w.site_name ? (
-                        <span className="text-on-surface font-medium">{w.site_name}</span>
+                      {/* FIX: Render multiple site names */}
+                      {w.sites && w.sites.length > 0 ? (
+                        <span className="text-on-surface font-medium">{w.sites.map(s => s.name).join(", ")}</span>
                       ) : (
                         <span className="text-on-surface-variant/50 italic">Unassigned</span>
                       )}
@@ -208,16 +228,16 @@ export default function WorkersTab() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button 
-                          onClick={() => handleReset(w.id)}
+                        <button
+                           onClick={() => handleReset(w.id)}
                           className="px-3 py-1.5 text-xs font-label-caps border border-outline hover:border-primary hover:text-primary transition-all rounded"
                           title="Reset System Password"
                         >
                           Reset Pass
                         </button>
                         {w.username !== "admin" && (
-                          <button 
-                            onClick={() => handleDelete(w.id, w.name)}
+                          <button
+                             onClick={() => handleDelete(w.id, w.name)}
                             className="px-3 py-1.5 text-xs font-label-caps bg-error-container/20 border border-error/30 text-error hover:bg-error hover:text-on-error transition-all rounded"
                             title="Purge Profile Registry"
                           >

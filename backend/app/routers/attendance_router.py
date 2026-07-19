@@ -29,28 +29,36 @@ def _to_out(r: AttendanceRecord) -> AttendanceOut:
         distance_m=r.distance_m,
     )
 
-
 @router.post("/mark", response_model=AttendanceOut, status_code=status.HTTP_201_CREATED)
 def mark_attendance(
     payload: AttendanceMarkRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if not current_user.site_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are not assigned to a site yet")
-
-    site = db.get(Site, current_user.site_id)
-    if not site:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Assigned site no longer exists")
-
-    # --- Server-side geofence check. Never trust the client's own claim of being "inside" the fence. ---
-    dist = distance_meters(payload.latitude, payload.longitude, site.latitude, site.longitude)
-    if dist > site.radius_m:
+    if not current_user.sites:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are not assigned to any sites yet")
+        
+    # --- Smart Geofence: Loop through all assigned sites to find where they are ---
+    valid_site = None
+    min_dist = float('inf')
+    matched_dist = 0
+    
+    for site in current_user.sites:
+        dist = distance_meters(payload.latitude, payload.longitude, site.latitude, site.longitude)
+        if dist <= site.radius_m:
+            valid_site = site
+            matched_dist = dist
+            break
+        if dist < min_dist:
+            min_dist = dist
+            
+    if not valid_site:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"You're about {round(dist)}m from {site.name}, outside the {site.radius_m}m check-in zone.",
+            detail=f"You are outside the check-in zone for all assigned sites. Closest site is {round(min_dist)}m away.",
         )
 
+    # --- Restored logic to save to database ---
     tz_kolkata = ZoneInfo("Asia/Kolkata")
     now_ist = datetime.now(tz_kolkata)
     today = now_ist.date()
@@ -63,6 +71,7 @@ def mark_attendance(
         )
         .all()
     )
+
     has_in = any(r.type == AttendanceType.check_in for r in todays_records)
     has_out = any(r.type == AttendanceType.check_out for r in todays_records)
 
@@ -71,20 +80,21 @@ def mark_attendance(
 
     record_type = AttendanceType.check_out if has_in else AttendanceType.check_in
 
-    # Strip the timezone offset so SQLite saves the exact local clock numbers directly
     naive_ist_now = now_ist.replace(tzinfo=None)
 
     record = AttendanceRecord(
         user_id=current_user.id,
-        site_id=site.id,
+        site_id=valid_site.id,      # dynamically assign the site they are standing in
         type=record_type,
         timestamp=naive_ist_now,
         record_date=today,
-        distance_m=dist,
+        distance_m=matched_dist,    
     )
+
     db.add(record)
     db.commit()
     db.refresh(record)
+
     return _to_out(record)
 
 
@@ -129,10 +139,14 @@ def today_overview(db: Session = Depends(get_db), _admin: User = Depends(require
 
         if last_time:
             last_time = last_time.replace(tzinfo=tz_kolkata)
+            
+        # FIX: Find the actual site they checked into today to show on the admin dashboard
+        active_record = has_out or has_in
+        current_site_name = active_record.site.name if active_record and active_record.site else None
 
         result.append(TodayStatus(
             user_id=w.id, name=w.name, username=w.username,
-            site_name=w.site.name if w.site else None,
+            site_name=current_site_name,
             status=status_val, last_time=last_time,
         ))
     return result
