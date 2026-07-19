@@ -33,15 +33,14 @@ class SiteCreate(BaseModel):
     radius_m: int = Field(default=150, ge=20, le=5000)
 
 
-class SiteOut(BaseModel):
+class UserOut(BaseModel):
     id: int
     name: str
-    latitude: float
-    longitude: float
-    radius_m: int
-
+    username: str
+    role: Role
+    must_change_password: bool
+    sites: list[SiteOut] = Field(default_factory=list) # <-- Changed to output a list of full sites!
     model_config = ConfigDict(from_attributes=True)
-
 
 # ---------- Users ----------
 
