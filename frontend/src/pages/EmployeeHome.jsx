@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import client, { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { calculateDistance } from "../utils/geo"; // <-- Import the math function!
+import { requestPushPermission, listenForMessages } from "../firebase"; // Adjust path if necessary
 
 // Geolocation helper function for submitting attendance
 function getPosition() {
@@ -49,6 +50,10 @@ export default function EmployeeHome() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    listenForMessages();
   }, []);
 
   // Watch position continuously for the Workstations grid

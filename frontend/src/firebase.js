@@ -37,3 +37,14 @@ export const requestPushPermission = async () => {
     return null;
   }
 };
+
+// Listen for foreground messages (when the app is open on the screen)
+export const listenForMessages = () => {
+  onMessage(messaging, (payload) => {
+    console.log("Foreground message received:", payload);
+    // Force iOS to show an alert box when the app is actively open
+    if (payload.notification) {
+      alert(`${payload.notification.title}\n${payload.notification.body}`);
+    }
+  });
+};
