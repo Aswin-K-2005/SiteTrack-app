@@ -51,7 +51,7 @@ def run_evening_checkout_reminder(db: Session):
     tz_kolkata = ZoneInfo("Asia/Kolkata")
     today = datetime.now(tz_kolkata).date()
     
-    # 1. Fetch all workers with an FCM token registered
+    # Fetch all workers with an FCM token registered
     workers = db.query(User).filter(User.fcm_token.isnot(None)).all()
     
     count = 0
