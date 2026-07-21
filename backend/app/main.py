@@ -77,16 +77,18 @@ def health():
     return {"status": "ok"}
 # --- EVENING CHECKOUT REMINDER ROUTE ---
 
+# --- EVENING CHECKOUT REMINDER ROUTE ---
 @app.get("/api/admin/trigger-evening-reminder")
 def trigger_evening_reminder(authorization: str = Header(None)):
-    # 1. Verify the secret token from the external cron job
+    # 1. Verify secret token
     if authorization != f"Bearer {settings.cron_secret}":
         raise HTTPException(status_code=401, detail="Unauthorized")
         
-    # 2. Open DB and run the reminder logic
+    # 2. Open DB and run reminder
     db = SessionLocal()
     try:
         count = run_evening_checkout_reminder(db)
-        return {"status": "success", "message": f"Evening reminder triggered! Sent {count} notifications."}
+        # Keep response tiny so cron-job.org doesn't complain about output size
+        return {"ok": True, "sent": count}
     finally:
         db.close()
