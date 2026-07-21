@@ -47,15 +47,18 @@ export default function SitesTab() {
 
   async function handleDelete(id) {
     setError(""); setSuccess("");
+    // Add a safety check!
+    if (!window.confirm("Are you sure you want to archive this site? Workers will be unassigned, but attendance logs will be saved.")) {
+        return;
+    }
     try {
       await client.delete(`/sites/${id}`);
-      setSuccess("Site removed.");
+      setSuccess("Site successfully archived.");
       await load();
     } catch (err) {
       setError(apiErrorMessage(err));
     }
   }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12 text-on-surface-variant font-headline-sm text-lg gap-3">
@@ -129,13 +132,13 @@ export default function SitesTab() {
                     </p>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleDelete(s.id)}
-                  className="bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/40 px-4 py-2 rounded font-label-caps text-xs uppercase tracking-wider transition-all active:scale-95"
-                >
-                  Remove
-                </button>
-              </div>
+            <button 
+              onClick={() => handleDelete(s.id)}
+        className="bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-warning hover:border-warning/40 px-4 py-2 rounded font-label-caps text-xs uppercase tracking-wider transition-all active:scale-95"
+        >
+        Archive
+        </button>         
+          </div>
             ))
           )}
         </div>
