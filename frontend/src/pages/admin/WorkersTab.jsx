@@ -6,8 +6,10 @@ export default function WorkersTab() {
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // FIX: Changed site_id to site_ids array
+  // Edit State
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: "", username: "", password: "", site_ids: [] });
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -22,29 +24,61 @@ export default function WorkersTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function handleAdd(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError(""); setSuccess("");
-    if (!form.name.trim() || !form.username.trim() || !form.password) {
-      setError("Fill in name, username, and a temporary password.");
+    
+    // If creating new user, password is required. If editing, we ignore the password field.
+    if (!form.name.trim() || !form.username.trim() || (!editingId && !form.password)) {
+      setError("Fill in all required fields.");
       return;
     }
     setBusy(true);
     try {
-      await client.post("/users", {
-        name: form.name.trim(),
-        username: form.username.trim().toLowerCase(),
-        password: form.password,
-        site_ids: form.site_ids, // FIX: Pass the array of IDs to the backend
-      });
-      setSuccess(`Added ${form.name}. Share username "${form.username.trim().toLowerCase()}" and the temporary password with them.`);
-      setForm({ name: "", username: "", password: "", site_ids: [] });
+      if (editingId) {
+        // UPDATE EXISTING WORKER
+        await client.put(`/users/${editingId}`, {
+          name: form.name.trim(),
+          username: form.username.trim().toLowerCase(),
+          site_ids: form.site_ids,
+        });
+        setSuccess(`Worker profile for "${form.name.trim()}" updated successfully.`);
+      } else {
+        // CREATE NEW WORKER
+        await client.post("/users", {
+          name: form.name.trim(),
+          username: form.username.trim().toLowerCase(),
+          password: form.password,
+          site_ids: form.site_ids,
+        });
+        setSuccess(`Added ${form.name}. Share username "${form.username.trim().toLowerCase()}" and the password with them.`);
+      }
+      resetForm();
       await load();
     } catch (err) {
       setError(apiErrorMessage(err));
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleEditClick(worker) {
+    setError(""); setSuccess("");
+    setEditingId(worker.id);
+    setForm({
+      name: worker.name,
+      username: worker.username,
+      password: "", // Password is unchanged via edit (Reset Pass button handles that)
+      site_ids: worker.sites.map(s => s.id)
+    });
+    // Smooth scroll to top of the form
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setForm({ name: "", username: "", password: "", site_ids: [] });
+    setError("");
   }
 
   async function handleReset(id) {
@@ -72,7 +106,6 @@ export default function WorkersTab() {
     }
   }
 
-  // FIX: Update the search filter to map over the sites array
   const filteredWorkers = workers.filter(w => {
     const siteNames = w.sites?.map(s => s.name).join(" ") || "unassigned";
     const matchString = `${w.name} ${w.username} ${siteNames} ${w.id}`.toLowerCase();
@@ -93,12 +126,21 @@ export default function WorkersTab() {
       {error && <div className="bg-error-container/20 border-l-4 border-error p-4 text-sm text-error font-bold">{error}</div>}
       {success && <div className="bg-[#1a2e21] border-l-4 border-secondary p-4 text-sm text-[#4edea3] font-bold">{success}</div>}
 
-      {/* Add Worker Form Card */}
-      <div className="bg-surface-container rounded-xl border border-outline-variant p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
-        <h3 className="font-headline-md text-xl text-on-surface uppercase tracking-wide mb-6">Register Personnel</h3>
+      {/* Dynamic Form Card (Create / Edit) */}
+      <div className="bg-surface-container rounded-xl border border-outline-variant p-6 relative overflow-hidden shadow-lg">
+        <div className={`absolute top-0 left-0 w-full h-1 ${editingId ? 'bg-secondary' : 'bg-primary-container'}`}></div>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-headline-md text-xl text-on-surface uppercase tracking-wide">
+            {editingId ? "Edit Personnel Profile" : "Register Personnel"}
+          </h3>
+          {editingId && (
+            <span className="bg-secondary-container/20 text-secondary font-label-caps text-xs px-3 py-1 rounded-full border border-secondary/30">
+              Editing Mode Active
+            </span>
+          )}
+        </div>
         
-        <form onSubmit={handleAdd} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label htmlFor="empName" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Full Name</label>
@@ -119,21 +161,27 @@ export default function WorkersTab() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label htmlFor="empPass" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Temporary Password</label>
-              <input
-                id="empPass" type="text" placeholder="e.g. Welcome123" value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30"
-              />
-            </div>
+            {/* Hide password field during edit since we have a dedicated Reset button */}
+            {!editingId ? (
+              <div className="space-y-1">
+                <label htmlFor="empPass" className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Temporary Password</label>
+                <input
+                  id="empPass" type="text" placeholder="e.g. Welcome123" value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col justify-center text-sm text-on-surface-variant italic p-2">
+                Password updates are handled via the Reset Pass button below.
+              </div>
+            )}
             
-            {/* FIX: Replaced Select Dropdown with Checkbox List */}
             <div className="space-y-1">
               <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Assign to Sites</label>
               <div className="max-h-32 overflow-y-auto bg-surface-container-low border border-outline-variant rounded-lg p-2 space-y-2">
                 {sites.length === 0 ? (
-                    <p className="text-xs text-on-surface-variant p-2">No sites available.</p>
+                    <p className="text-xs text-on-surface-variant p-2">No active sites available.</p>
                 ) : (
                     sites.map((s) => (
                     <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer text-on-surface">
@@ -159,18 +207,34 @@ export default function WorkersTab() {
             </div>
           </div>
           
-          <button type="submit" disabled={busy} className="w-full bg-primary-container text-on-primary font-bold py-3 rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50">
-            {busy ? "Registering..." : "Register Worker Profile"}
-          </button>
+          <div className="flex gap-4 pt-2">
+            {editingId && (
+              <button 
+                type="button" 
+                onClick={resetForm}
+                disabled={busy}
+                className="w-1/3 bg-surface-container-highest border border-outline-variant text-on-surface font-bold py-3 rounded-lg uppercase tracking-wider hover:bg-surface-container-high transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            )}
+            <button 
+              type="submit" 
+              disabled={busy} 
+              className={`${editingId ? 'w-2/3 bg-secondary text-black' : 'w-full bg-primary-container text-on-primary'} font-bold py-3 rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50`}
+            >
+              {busy ? "Processing..." : (editingId ? "Save Profile Updates" : "Register Worker Profile")}
+            </button>
+          </div>
         </form>
       </div>
 
       {/* Control Search Element Bar */}
       <section className="bg-surface-container-high p-4 border border-outline-variant rounded-t-xl flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
-          <input
-             className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-4 pr-4 py-2 font-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm"
-             placeholder="Search workers by name, site, or login ID..."
+          <input 
+             className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-4 pr-4 py-2 font-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm" 
+             placeholder="Search workers by name, site, or login ID..." 
              type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -200,7 +264,7 @@ export default function WorkersTab() {
                 </tr>
               ) : (
                 filteredWorkers.map((w) => (
-                  <tr key={w.id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={w.id} className={`hover:bg-white/[0.02] transition-colors group ${editingId === w.id ? 'bg-secondary/5' : ''}`}>
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-body-md font-bold text-on-surface text-sm">{w.name}</p>
@@ -208,7 +272,6 @@ export default function WorkersTab() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {/* FIX: Render multiple site names */}
                       {w.sites && w.sites.length > 0 ? (
                         <span className="text-on-surface font-medium">{w.sites.map(s => s.name).join(", ")}</span>
                       ) : (
@@ -228,16 +291,23 @@ export default function WorkersTab() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button
-                           onClick={() => handleReset(w.id)}
+                        <button 
+                          onClick={() => handleEditClick(w)}
+                          className="px-3 py-1.5 text-xs font-label-caps border border-outline hover:border-secondary hover:text-secondary transition-all rounded"
+                          title="Edit Worker Profile"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleReset(w.id)}
                           className="px-3 py-1.5 text-xs font-label-caps border border-outline hover:border-primary hover:text-primary transition-all rounded"
                           title="Reset System Password"
                         >
                           Reset Pass
                         </button>
                         {w.username !== "admin" && (
-                          <button
-                             onClick={() => handleDelete(w.id, w.name)}
+                          <button 
+                            onClick={() => handleDelete(w.id, w.name)}
                             className="px-3 py-1.5 text-xs font-label-caps bg-error-container/20 border border-error/30 text-error hover:bg-error hover:text-on-error transition-all rounded"
                             title="Purge Profile Registry"
                           >

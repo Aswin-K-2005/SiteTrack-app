@@ -47,6 +47,16 @@ class UserCreate(BaseModel):
     def lowercase_username(cls, v: str) -> str:
         return v.lower()
 
+class UserUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    username: str = Field(pattern=USERNAME_PATTERN)
+    site_ids: list[int] = Field(default_factory=list)
+
+    @field_validator("username")
+    @classmethod
+    def lowercase_username(cls, v: str) -> str:
+        return v.lower()
+
 class UserOut(BaseModel):
     id: int
     name: str

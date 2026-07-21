@@ -214,14 +214,15 @@ export default function SitesTab() {
                 Cancel
               </button>
               <button 
-                onClick={confirmArchive}
-                disabled={busy}
-                className="px-4 py-2 rounded font-label-caps text-xs tracking-wider bg-warning text-black font-bold hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                {busy && <span className="animate-spin rounded-full h-3 w-3 border-2 border-black border-t-transparent"></span>}
-                Yes, Archive
-              </button>
+           onClick={confirmArchive}
+           disabled={busy}
+           className="px-4 py-2 rounded font-label-caps text-xs tracking-wider bg-primary-container text-on-primary font-bold hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+          {busy && <span className="animate-spin rounded-full h-3 w-3 border-2 border-on-primary border-t-transparent"></span>}
+            Yes, Archive
+          </button>   
             </div>
+
           </div>
         </div>
       )}

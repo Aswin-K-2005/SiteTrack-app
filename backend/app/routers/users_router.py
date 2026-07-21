@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.auth import require_admin, hash_password, get_current_user
 from app.database import get_db
 from app.models import User, Role,Site
-from app.schemas import UserCreate, UserOut, PasswordResetOut
+from app.schemas import UserCreate, UserOut, PasswordResetOut,UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -96,3 +96,30 @@ def remove_worker_registry(
     db.commit()
     return None
 
+@router.put("/{user_id}", response_model=UserOut)
+def update_worker(
+    user_id: int,
+    payload: UserUpdate,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin)
+):
+    worker = db.get(User, user_id)
+    if not worker:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
+    
+    # Ensure the new username isn't already taken by someone else
+    if payload.username != worker.username:
+        existing = db.query(User).filter(User.username == payload.username).first()
+        if existing:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+            
+    worker.name = payload.name
+    worker.username = payload.username
+    
+    # Update assigned sites dynamically
+    assigned_sites = db.query(Site).filter(Site.id.in_(payload.site_ids)).all()
+    worker.sites = assigned_sites
+    
+    db.commit()
+    db.refresh(worker)
+    return _to_user_out(worker)
