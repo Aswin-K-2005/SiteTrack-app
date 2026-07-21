@@ -22,7 +22,7 @@ export const requestPushPermission = async () => {
 
       // 2. Request token with registration & VAPID key
       const token = await getToken(messaging, {
-        vapidKey: "YOUR_ACTUAL_PUBLIC_VAPID_KEY_HERE", // Replace with your real VAPID key from Firebase
+        vapidKey: "BCZLJNi224ZFFyZVYScK20pHY9OxMYNtCRzaWVKr45nbEhum05HriF0ToxJP8hiqpy48JWXzDtgFx_joVVlH1ww", // Replace with your real VAPID key from Firebase
         serviceWorkerRegistration: registration,
       });
 
