@@ -10,3 +10,4 @@ python-multipart==0.0.9
 psycopg2-binary
 pandas
 resend
+firebase-admin==6.5.0
