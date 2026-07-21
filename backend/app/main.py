@@ -8,6 +8,7 @@ from app.models import User, Role
 from app.auth import hash_password
 from app.routers import auth_router, users_router, sites_router, attendance_router
 from app.report_service import generate_and_email_monthly_report
+from app.notifier import run_evening_checkout_reminder
 
 # Initialize database schema components
 Base.metadata.create_all(bind=engine)
@@ -74,3 +75,18 @@ def trigger_report(authorization: str = Header(None)):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+# --- EVENING CHECKOUT REMINDER ROUTE ---
+
+@app.get("/api/admin/trigger-evening-reminder")
+def trigger_evening_reminder(authorization: str = Header(None)):
+    # 1. Verify the secret token from the external cron job
+    if authorization != f"Bearer {settings.cron_secret}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    # 2. Open DB and run the reminder logic
+    db = SessionLocal()
+    try:
+        count = run_evening_checkout_reminder(db)
+        return {"status": "success", "message": f"Evening reminder triggered! Sent {count} notifications."}
+    finally:
+        db.close()

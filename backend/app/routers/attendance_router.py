@@ -10,6 +10,9 @@ from app.geo import distance_meters
 from app.models import AttendanceRecord, AttendanceType, User, Site, Role
 from app.schemas import AttendanceMarkRequest, AttendanceOut, TodayStatus
 
+# --- NEW: Import the notification engine ---
+from app.notifier import send_push_notification
+
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
 
@@ -94,6 +97,14 @@ def mark_attendance(
     db.add(record)
     db.commit()
     db.refresh(record)
+
+    # --- NEW: Send a welcome push notification if they just checked in ---
+    if record_type == AttendanceType.check_in and current_user.fcm_token:
+        send_push_notification(
+            token=current_user.fcm_token,
+            title="Checked In Successfully ✅",
+            body=f"Welcome to {valid_site.name}. Have a safe shift!"
+        )
 
     return _to_out(record)
 
