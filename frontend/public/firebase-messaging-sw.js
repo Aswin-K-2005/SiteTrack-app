@@ -2,21 +2,22 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
 // 1. Initialize Firebase exactly as you did in firebase.js
-firebase.initializeApp({
-  apiKey: "AIzaSyC01bUV3PZMGH3PYCfHUZgPmNdKFiff29E",
-  authDomain: "site-track-app.firebaseapp.com",
-  projectId: "site-track-app",
-  storageBucket: "site-track-app.firebasestorage.app",
-  messagingSenderId: "351376749809",
-  appId: "1:351376749809:web:e86510a68bd9dccb50a550"
-});
+const firebaseConfig = {
+  apiKey: "AIzaSyCMnQZNUOVbo8R5OqutkzIhOcNkZ3dewTE",
+  authDomain: "sitetrack-backend.firebaseapp.com",
+  projectId: "sitetrack-backend",
+  storageBucket: "sitetrack-backend.firebasestorage.app",
+  messagingSenderId: "580393625486",
+  appId: "1:580393625486:web:f46229e8ec7ced30ee66df",
+  measurementId: "G-QSWSDNRMF8"
+};
 
 // 2. Initialize Messaging
 const messaging = firebase.messaging();
 
 // 3. THIS IS THE MISSING PIECE: Tell the SW how to decrypt the message
 messaging.getToken({ 
-  vapidKey: "BCZLJNi224ZFFyZVYScK20pHY9OxMYNtCRzaWVKr45nbEhum05HriF0ToxJP8hiqpy48JWXzDtgFx_joVVlH1ww" 
+  vapidKey: "BL59yeNy8YSJvtYDHFir6N32lB3TyIgIXi76iOXvq-dobpBeKzjIySgCwvLRFLzJd5n_qMNuf_hD8uNRylj5jJw" 
 });
 
 // 4. Handle the Background Message

@@ -1,15 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyC01bUV3PZMGH3PYCfHUZgPmNdKFiff29E",
   authDomain: "site-track-app.firebaseapp.com",
   projectId: "site-track-app",
   storageBucket: "site-track-app.firebasestorage.app",
   messagingSenderId: "351376749809",
   appId: "1:351376749809:web:e86510a68bd9dccb50a550"
-};
-
+});
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
@@ -22,7 +21,7 @@ export const requestPushPermission = async () => {
 
       // 2. Request token with registration & VAPID key
       const token = await getToken(messaging, {
-        vapidKey: "BCZLJNi224ZFFyZVYScK20pHY9OxMYNtCRzaWVKr45nbEhum05HriF0ToxJP8hiqpy48JWXzDtgFx_joVVlH1ww", // Replace with your real VAPID key from Firebase
+        vapidKey: "BL59yeNy8YSJvtYDHFir6N32lB3TyIgIXi76iOXvq-dobpBeKzjIySgCwvLRFLzJd5n_qMNuf_hD8uNRylj5jJw", // Replace with your real VAPID key from Firebase
         serviceWorkerRegistration: registration,
       });
 
