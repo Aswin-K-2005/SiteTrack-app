@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.auth import require_admin, hash_password, get_current_user
 from app.database import get_db
 from app.models import User, Role,Site
-from app.schemas import UserCreate, UserOut, PasswordResetOut,UserUpdate
+from app.schemas import UserCreate, UserOut, PasswordResetOut,UserUpdate,FCMTokenUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -123,3 +123,14 @@ def update_worker(
     db.commit()
     db.refresh(worker)
     return _to_user_out(worker)
+
+@router.post("/me/fcm-token")
+def update_fcm_token(
+    payload: FCMTokenUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    """Saves the worker's device token so we can send them push notifications."""
+    current_user.fcm_token = payload.token
+    db.commit()
+    return {"status": "success", "message": "Device token registered."}

@@ -56,6 +56,8 @@ class UserUpdate(BaseModel):
     @classmethod
     def lowercase_username(cls, v: str) -> str:
         return v.lower()
+class FCMTokenUpdate(BaseModel):
+    token: str
 
 class UserOut(BaseModel):
     id: int
@@ -63,6 +65,7 @@ class UserOut(BaseModel):
     username: str
     role: Role
     must_change_password: bool
+    fcm_token: Optional[str] = None  # <-- Add this!
     sites: list[SiteOut] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 

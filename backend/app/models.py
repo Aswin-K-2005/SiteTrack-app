@@ -50,6 +50,7 @@ class User(Base):
     must_change_password = Column(Boolean, default=True, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Kolkata")))
+    fcm_token = Column(String(255), nullable=True)
     
     # Updated relationship (Notice site_id is gone!)
     sites = relationship("Site", secondary=user_sites, back_populates="users")
