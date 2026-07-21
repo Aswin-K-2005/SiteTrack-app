@@ -22,7 +22,7 @@ export const requestPushPermission = async () => {
     if (permission === "granted") {
       // 2. PASTE YOUR VAPID KEY HERE:
       const token = await getToken(messaging, {
-        vapidKey: "YOUR_LONG_VAPID_KEY_STRING_HERE"
+        vapidKey: "BCZLJNi224ZFFyZVYScK20pHY9OxMYNtCRzaWVKr45nbEhum05HriF0ToxJP8hiqpy48JWXzDtgFx_joVVlH1ww"
       });
       return token;
     } else {
