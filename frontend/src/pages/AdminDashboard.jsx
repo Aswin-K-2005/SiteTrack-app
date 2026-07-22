@@ -3,12 +3,14 @@ import OverviewTab from "./admin/OverviewTab";
 import WorkersTab from "./admin/WorkersTab";
 import SitesTab from "./admin/SitesTab";
 import HolidaysTab from "./admin/HolidaysTab";
+import LeavesTab from "./admin/LeavesTab";
 
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "workers", label: "Workers" },
   { id: "sites", label: "Sites" },
   { id: "holidays", label: "Holidays" },
+  { id: "leaves", label: "Leaves" },
 ];
 
 export default function AdminDashboard() {
@@ -43,6 +45,7 @@ export default function AdminDashboard() {
         {tab === "workers" && <WorkersTab />}
         {tab === "sites" && <SitesTab />}
         {tab === "holidays" && <HolidaysTab />}
+
       </div>
     </div>
   );

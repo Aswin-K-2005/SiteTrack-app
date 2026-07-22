@@ -1,10 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import client, { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { calculateDistance } from "../utils/geo"; // <-- Import the math function!
-import { requestPushPermission, listenForMessages } from "../firebase"; // Adjust path if necessary
+import { calculateDistance } from "../utils/geo";
+import { requestPushPermission, listenForMessages } from "../firebase";
 
-// Geolocation helper function for submitting attendance
 function getPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -31,40 +30,45 @@ function timeLabel(iso) {
 
 export default function EmployeeHome() {
   const { user } = useAuth();
+  
+  // Existing States
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
-  
-  // State for continuous real-time GPS tracking
   const [currentLat, setCurrentLat] = useState(null);
   const [currentLon, setCurrentLon] = useState(null);
-
-  // NEW: State to track if today is a holiday
   const [todayHoliday, setTodayHoliday] = useState(null);
+
+  // NEW: Leave Request States
+  const [leaves, setLeaves] = useState([]);
+  const [leaveStart, setLeaveStart] = useState("");
+  const [leaveEnd, setLeaveEnd] = useState("");
+  const [leaveReason, setLeaveReason] = useState("");
+  const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveMsg, setLeaveMsg] = useState("");
 
   const loadHistory = useCallback(async () => {
     try {
-      // Fetch both attendance and holidays at the same time
-      const [attRes, holRes] = await Promise.all([
+      // Fetch attendance, holidays, AND leave requests at the exact same time
+      const [attRes, holRes, leaveRes] = await Promise.all([
         client.get("/attendance/me"),
-        client.get("/holidays") 
+        client.get("/holidays"),
+        client.get("/leaves/me")
       ]);
       setHistory(attRes.data);
+      setLeaves(leaveRes.data);
       
-      // Check if today is a holiday for this worker's sites
       const targetFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
       const todayStr = targetFormatter.format(new Date());
       
       const holidayToday = holRes.data.find(h => {
         if (h.holiday_date !== todayStr) return false;
-        // True if company-wide (null) OR matches one of the worker's assigned sites
         return h.site_id === null || user?.sites?.some(s => s.id === h.site_id);
       });
       
       setTodayHoliday(holidayToday || null);
-
     } catch {
       // Non-fatal fallback
     } finally {
@@ -76,10 +80,8 @@ export default function EmployeeHome() {
     listenForMessages();
   }, []);
 
-  // Watch position continuously for the Workstations grid
   useEffect(() => {
     loadHistory();
-    
     if (navigator.geolocation) {
         const watchId = navigator.geolocation.watchPosition(
             (pos) => {
@@ -99,7 +101,6 @@ export default function EmployeeHome() {
   const todaysRecords = history.filter((r) => r.record_date === today);
   const hasIn = todaysRecords.find((r) => r.type === "check_in" || r.type === "in");
   const hasOut = todaysRecords.find((r) => r.type === "check_out" || r.type === "out");
-
   const willCheckout = !!hasIn && !hasOut;
   const done = !!hasIn && !!hasOut;
 
@@ -124,6 +125,30 @@ export default function EmployeeHome() {
     }
   }
 
+  // NEW: Submit Leave Request Handler
+  async function handleLeaveSubmit(e) {
+    e.preventDefault();
+    setLeaveMsg(""); 
+    setLeaveBusy(true);
+    try {
+      await client.post("/leaves/request", {
+        start_date: leaveStart,
+        end_date: leaveEnd,
+        reason: leaveReason
+      });
+      setLeaveMsg("Leave request submitted successfully. Pending Admin approval.");
+      setLeaveStart(""); setLeaveEnd(""); setLeaveReason("");
+      
+      // Refresh the table to show the new pending request
+      const res = await client.get("/leaves/me");
+      setLeaves(res.data);
+    } catch (err) {
+      setLeaveMsg(apiErrorMessage(err));
+    } finally {
+      setLeaveBusy(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-on-surface-variant font-headline-sm text-lg gap-3 bg-background">
@@ -135,18 +160,13 @@ export default function EmployeeHome() {
 
   return (
     <div className="flex-grow pt-24 pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface">
-      {/* Header Section */}
       <div className="mb-8">
         <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Mark Attendance</h1>
         <p className="font-body-md text-sm text-on-surface-variant mt-2">Confirm your site location and record your entry/exit.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Left Column: Controls & Status */}
         <div className="lg:col-span-5 space-y-6">
-          
-          {/* Status Display Area */}
           <div className="bg-surface-container border border-outline-variant p-4 flex items-center justify-between">
             <div>
               <span className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-1">CURRENT STATUS</span>
@@ -175,23 +195,15 @@ export default function EmployeeHome() {
             </div>
           </div>
 
-          {/* Feedback Messages */}
           {error && <div className="bg-error-container/20 border-l-4 border-error p-3 text-xs text-error">{error}</div>}
           {info && <div className="bg-[#1a2e21] border-l-4 border-secondary p-3 text-xs text-[#4edea3]">{info}</div>}
 
-          {/* Dynamic Workstations Grid replaces the static text input */}
           <div className="mt-4">
               <h2 className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-2 uppercase">Your Workstations</h2>
-              
               {user?.sites?.length > 0 ? (
                   <div className="space-y-3">
                       {user.sites.map(site => {
-                          const distance = calculateDistance(
-                              currentLat, 
-                              currentLon, 
-                              site.latitude, 
-                              site.longitude
-                          );
+                          const distance = calculateDistance(currentLat, currentLon, site.latitude, site.longitude);
                           const isOnSite = distance !== null && distance <= site.radius_m;
 
                           return (
@@ -200,8 +212,6 @@ export default function EmployeeHome() {
                                       <h3 className="font-bold text-on-surface text-sm">{site.name}</h3>
                                       <p className="text-[10px] text-on-surface-variant uppercase mt-1">Radius: {site.radius_m}m</p>
                                   </div>
-                                  
-                                  {/* Real-time Badge */}
                                   {isOnSite ? (
                                       <span className="bg-[#1a2e21] text-[#4edea3] px-2.5 py-1 rounded text-[10px] font-bold tracking-wide border border-secondary/30 flex items-center gap-1.5">
                                           <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
@@ -223,7 +233,6 @@ export default function EmployeeHome() {
               )}
           </div>
 
-          {/* NEW: Holiday Block or Action Triggers */}
           {todayHoliday ? (
             <div className="bg-tertiary-container/20 border-2 border-tertiary p-6 rounded-xl text-center">
               <span className="font-label-caps text-tertiary tracking-widest text-xs uppercase block mb-2">System Locked</span>
@@ -251,10 +260,8 @@ export default function EmployeeHome() {
               </button>
             </div>
           )}
-
         </div>
 
-        {/* Right Column: Active Log Table */}
         <div className="lg:col-span-7 space-y-4">
           <h2 className="font-headline-sm text-xl text-on-surface uppercase tracking-wider">Your Recent Activity</h2>
           <div className="overflow-x-auto bg-surface-container border border-outline-variant">
@@ -291,6 +298,96 @@ export default function EmployeeHome() {
           </div>
         </div>
       </div>
+
+      {/* --- NEW: LEAVE MANAGEMENT SECTION --- */}
+      <div className="mt-12 border-t border-outline-variant pt-8">
+        <h2 className="font-headline-sm text-2xl text-on-surface uppercase tracking-wider mb-6">Leave Management</h2>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Request Form */}
+          <div className="lg:col-span-5 bg-surface-container border border-outline-variant rounded-xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+            <h3 className="font-headline-sm text-lg uppercase mb-4 text-on-surface">Request Time Off</h3>
+            
+            {leaveMsg && (
+              <div className="p-3 mb-4 text-xs font-bold rounded bg-surface-container-highest text-on-surface border border-outline-variant">
+                {leaveMsg}
+              </div>
+            )}
+            
+            <form onSubmit={handleLeaveSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Start Date</label>
+                  <input 
+                    type="date" required value={leaveStart} onChange={e => setLeaveStart(e.target.value)} 
+                    className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm transition-all" 
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">End Date</label>
+                  <input 
+                    type="date" required value={leaveEnd} onChange={e => setLeaveEnd(e.target.value)} 
+                    className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm transition-all" 
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Reason (Optional)</label>
+                <input 
+                  type="text" placeholder="e.g. Medical Appointment" value={leaveReason} onChange={e => setLeaveReason(e.target.value)} 
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm transition-all" 
+                />
+              </div>
+              
+              <button 
+                type="submit" disabled={leaveBusy} 
+                className="w-full bg-surface-container-highest border border-outline-variant text-on-surface font-bold py-3 mt-2 rounded-lg uppercase tracking-wider hover:border-primary hover:text-primary transition-all disabled:opacity-50"
+              >
+                {leaveBusy ? "Submitting..." : "Submit Request"}
+              </button>
+            </form>
+          </div>
+
+          {/* Leave History Table */}
+          <div className="lg:col-span-7 bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-surface-container-highest border-b border-outline-variant">
+                <tr>
+                  <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DATES</th>
+                  <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">REASON</th>
+                  <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider text-right">STATUS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
+                {leaves.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="p-8 text-center text-on-surface-variant/50 text-sm">
+                      No leave requests submitted yet.
+                    </td>
+                  </tr>
+                ) : (
+                  leaves.map(l => (
+                    <tr key={l.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-4 font-body-md text-sm text-on-surface">
+                        {dateLabel(l.start_date)} {l.start_date !== l.end_date ? `to ${dateLabel(l.end_date)}` : ''}
+                      </td>
+                      <td className="px-4 py-4 font-body-md text-sm text-on-surface-variant">{l.reason || "—"}</td>
+                      <td className="px-4 py-4 text-right">
+                        {l.status === 'approved' && <span className="inline-flex items-center px-2 py-0.5 bg-[#1a2e21] text-[#4edea3] font-label-caps text-[10px] rounded border border-secondary/30">Approved</span>}
+                        {l.status === 'rejected' && <span className="inline-flex items-center px-2 py-0.5 bg-error-container/20 text-error font-label-caps text-[10px] rounded border border-error/30">Rejected</span>}
+                        {l.status === 'pending' && <span className="inline-flex items-center px-2 py-0.5 bg-surface-container-highest text-on-surface-variant font-label-caps text-[10px] rounded border border-outline-variant">Pending Admin</span>}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
     </div>
   );
 }
