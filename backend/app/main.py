@@ -6,7 +6,7 @@ from app.config import settings
 from app.database import Base, engine, SessionLocal
 from app.models import User, Role
 from app.auth import hash_password
-from app.routers import auth_router, users_router, sites_router, attendance_router, holidays_router
+from app.routers import auth_router, users_router, sites_router, attendance_router, holidays_router, leaves_router
 from app.report_service import generate_and_email_monthly_report
 from app.notifier import run_evening_checkout_reminder
 
@@ -59,6 +59,7 @@ app.include_router(users_router.router)
 app.include_router(sites_router.router)
 app.include_router(attendance_router.router)
 app.include_router(holidays_router.router)
+app.include_router(leaves_router.router)
 # --- NEW SECURE WEBHOOK ROUTE ---
 @app.get("/api/admin/trigger-monthly-report")
 def trigger_report(authorization: str = Header(None)):

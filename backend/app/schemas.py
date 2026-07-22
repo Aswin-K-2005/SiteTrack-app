@@ -109,3 +109,19 @@ class HolidayOut(BaseModel):
     title: str
     
     model_config = ConfigDict(from_attributes=True)
+# ---------- Leave Requests ----------
+class LeaveRequestCreate(BaseModel):
+    start_date: date
+    end_date: date
+    reason: Optional[str] = None
+
+class LeaveRequestOut(BaseModel):
+    id: int
+    user_id: int
+    user_name: Optional[str] = None
+    start_date: date
+    end_date: date
+    reason: Optional[str] = None
+    status: str
+    
+    model_config = ConfigDict(from_attributes=True)
