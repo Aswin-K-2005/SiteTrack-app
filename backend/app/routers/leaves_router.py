@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.auth import require_admin, get_current_user
 from app.database import get_db
-from app.models import LeaveRequest, User, Role
+from app.models import LeaveRequest, User, Role, Holiday
 from app.schemas import LeaveRequestCreate, LeaveRequestOut
 
 router = APIRouter(prefix="/leaves", tags=["leaves"])
@@ -29,6 +29,24 @@ def request_leave(
     if payload.start_date > payload.end_date:
         raise HTTPException(status_code=400, detail="Start date must be before end date.")
         
+    # --- NEW: Smart Holiday Overlap Check ---
+    # Get the IDs of the sites this worker belongs to
+    worker_site_ids = [site.id for site in current_user.sites]
+    
+    # Check if any declared holiday falls within their requested leave dates
+    overlapping_holiday = db.query(Holiday).filter(
+        Holiday.holiday_date >= payload.start_date,
+        Holiday.holiday_date <= payload.end_date,
+        (Holiday.site_id.is_(None) | Holiday.site_id.in_(worker_site_ids))
+    ).first()
+
+    if overlapping_holiday:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"No need to apply! {overlapping_holiday.holiday_date} is already a declared holiday ({overlapping_holiday.title})."
+        )
+    # ----------------------------------------
+
     leave = LeaveRequest(
         user_id=current_user.id,
         start_date=payload.start_date,
