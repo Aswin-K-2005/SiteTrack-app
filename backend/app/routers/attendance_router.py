@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user, require_admin
 from app.database import get_db
 from app.geo import distance_meters
-from app.models import AttendanceRecord, AttendanceType, User, Site, Role
+from app.models import AttendanceRecord, AttendanceType, User, Site, Role, Holiday
 from app.schemas import AttendanceMarkRequest, AttendanceOut, TodayStatus
 
 # --- NEW: Import the notification engine ---

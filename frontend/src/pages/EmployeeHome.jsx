@@ -37,20 +37,40 @@ export default function EmployeeHome() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   
-  // FIX: State for continuous real-time GPS tracking
+  // State for continuous real-time GPS tracking
   const [currentLat, setCurrentLat] = useState(null);
   const [currentLon, setCurrentLon] = useState(null);
 
+  // NEW: State to track if today is a holiday
+  const [todayHoliday, setTodayHoliday] = useState(null);
+
   const loadHistory = useCallback(async () => {
     try {
-      const res = await client.get("/attendance/me");
-      setHistory(res.data);
+      // Fetch both attendance and holidays at the same time
+      const [attRes, holRes] = await Promise.all([
+        client.get("/attendance/me"),
+        client.get("/holidays") 
+      ]);
+      setHistory(attRes.data);
+      
+      // Check if today is a holiday for this worker's sites
+      const targetFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const todayStr = targetFormatter.format(new Date());
+      
+      const holidayToday = holRes.data.find(h => {
+        if (h.holiday_date !== todayStr) return false;
+        // True if company-wide (null) OR matches one of the worker's assigned sites
+        return h.site_id === null || user?.sites?.some(s => s.id === h.site_id);
+      });
+      
+      setTodayHoliday(holidayToday || null);
+
     } catch {
       // Non-fatal fallback
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     listenForMessages();
@@ -203,26 +223,34 @@ export default function EmployeeHome() {
               )}
           </div>
 
-          {/* Industrial Action Triggers */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              onClick={() => handleMark("in")}
-              disabled={hasIn || busy}
-              className="flex flex-col items-center justify-center gap-3 py-6 bg-primary-container text-on-primary font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
-            >
-              <span className="font-headline-sm text-lg uppercase tracking-wider">Check In</span>
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </button>
-            
-            <button
-              onClick={() => handleMark("out")}
-              disabled={!willCheckout || busy}
-              className="flex flex-col items-center justify-center gap-3 py-6 border-2 border-outline-variant text-on-surface font-bold hover:border-error transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
-            >
-              <span className="font-headline-sm text-lg uppercase tracking-wider">Check Out</span>
-              <div className="absolute inset-0 bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </button>
-          </div>
+          {/* NEW: Holiday Block or Action Triggers */}
+          {todayHoliday ? (
+            <div className="bg-tertiary-container/20 border-2 border-tertiary p-6 rounded-xl text-center">
+              <span className="font-label-caps text-tertiary tracking-widest text-xs uppercase block mb-2">System Locked</span>
+              <h3 className="font-headline-sm text-xl text-on-surface uppercase">{todayHoliday.title}</h3>
+              <p className="text-sm text-on-surface-variant mt-1">Attendance tracking is disabled for today.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                onClick={() => handleMark("in")}
+                disabled={hasIn || busy}
+                className="flex flex-col items-center justify-center gap-3 py-6 bg-primary-container text-on-primary font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
+              >
+                <span className="font-headline-sm text-lg uppercase tracking-wider">Check In</span>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
+              
+              <button
+                onClick={() => handleMark("out")}
+                disabled={!willCheckout || busy}
+                className="flex flex-col items-center justify-center gap-3 py-6 border-2 border-outline-variant text-on-surface font-bold hover:border-error transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
+              >
+                <span className="font-headline-sm text-lg uppercase tracking-wider">Check Out</span>
+                <div className="absolute inset-0 bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
+            </div>
+          )}
 
         </div>
 
