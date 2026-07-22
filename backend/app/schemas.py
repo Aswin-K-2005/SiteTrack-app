@@ -96,3 +96,16 @@ class TodayStatus(BaseModel):
     site_name: Optional[str] = None
     status: str  # "not_checked_in" | "checked_in" | "checked_out"
     last_time: Optional[datetime] = None
+# ---------- Holidays ----------
+class HolidayCreate(BaseModel):
+    site_id: Optional[int] = None  # None = Company-wide holiday
+    holiday_date: date
+    title: str = Field(min_length=1, max_length=100)
+
+class HolidayOut(BaseModel):
+    id: int
+    site_id: Optional[int]
+    holiday_date: date
+    title: str
+    
+    model_config = ConfigDict(from_attributes=True)
