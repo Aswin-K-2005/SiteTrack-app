@@ -68,3 +68,29 @@ class AttendanceRecord(Base):
     
     user = relationship("User", back_populates="attendance_records")
     site = relationship("Site", back_populates="attendance_records")
+
+class LeaveRequest(Base):
+    __tablename__ = "leave_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    reason = Column(String(500), nullable=True)
+    status = Column(String(20), default="pending", nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Kolkata")))
+    
+    # Links this leave request back to the specific user
+    user = relationship("User", backref="leave_requests")
+
+
+class Holiday(Base):
+    __tablename__ = "holidays"
+    id = Column(Integer, primary_key=True, index=True)
+    # site_id can be nullable. If it's NULL, it means it's a company-wide holiday!
+    site_id = Column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=True)
+    holiday_date = Column(Date, nullable=False)
+    title = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Kolkata")))
+    
+    # Links this holiday to a specific site
+    site = relationship("Site", backref="holidays")
