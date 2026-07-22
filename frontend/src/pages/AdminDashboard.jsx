@@ -45,6 +45,7 @@ export default function AdminDashboard() {
         {tab === "workers" && <WorkersTab />}
         {tab === "sites" && <SitesTab />}
         {tab === "holidays" && <HolidaysTab />}
+        {tab === "leaves" && <LeavesTab />}
 
       </div>
     </div>
