@@ -40,8 +40,9 @@ export default function EmployeeHome() {
   const [currentLat, setCurrentLat] = useState(null);
   const [currentLon, setCurrentLon] = useState(null);
   const [todayHoliday, setTodayHoliday] = useState(null);
+  const [onLeaveToday, setOnLeaveToday] = useState(false); // <-- Added Leave State
 
-  // NEW: Leave Request States
+  // Leave Request States
   const [leaves, setLeaves] = useState([]);
   const [leaveStart, setLeaveStart] = useState("");
   const [leaveEnd, setLeaveEnd] = useState("");
@@ -67,8 +68,16 @@ export default function EmployeeHome() {
         if (h.holiday_date !== todayStr) return false;
         return h.site_id === null || user?.sites?.some(s => s.id === h.site_id);
       });
-      
       setTodayHoliday(holidayToday || null);
+
+      // Check if worker has an approved leave active today
+      const activeLeave = leaveRes.data.find(l => 
+        l.status === 'approved' && 
+        l.start_date <= todayStr && 
+        l.end_date >= todayStr
+      );
+      setOnLeaveToday(!!activeLeave);
+
     } catch {
       // Non-fatal fallback
     } finally {
@@ -76,10 +85,29 @@ export default function EmployeeHome() {
     }
   }, [user]);
 
+  // Push notifications listener
   useEffect(() => {
     listenForMessages();
   }, []);
 
+  // NEW: Auto-refresh data when the app comes back to the foreground
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        loadHistory();
+      }
+    };
+    
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", loadHistory);
+    
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", loadHistory);
+    };
+  }, [loadHistory]);
+
+  // Live GPS Tracking
   useEffect(() => {
     loadHistory();
     if (navigator.geolocation) {
@@ -125,7 +153,7 @@ export default function EmployeeHome() {
     }
   }
 
-  // NEW: Submit Leave Request Handler
+  // Submit Leave Request Handler
   async function handleLeaveSubmit(e) {
     e.preventDefault();
     setLeaveMsg(""); 
@@ -139,7 +167,6 @@ export default function EmployeeHome() {
       setLeaveMsg("Leave request submitted successfully. Pending Admin approval.");
       setLeaveStart(""); setLeaveEnd(""); setLeaveReason("");
       
-      // Refresh the table to show the new pending request
       const res = await client.get("/leaves/me");
       setLeaves(res.data);
     } catch (err) {
@@ -160,9 +187,24 @@ export default function EmployeeHome() {
 
   return (
     <div className="flex-grow pt-24 pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface">
-      <div className="mb-8">
-        <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Mark Attendance</h1>
-        <p className="font-body-md text-sm text-on-surface-variant mt-2">Confirm your site location and record your entry/exit.</p>
+      
+      {/* Header Section with Manual Refresh Button */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Mark Attendance</h1>
+          <p className="font-body-md text-sm text-on-surface-variant mt-2">Confirm your site location and record your entry/exit.</p>
+        </div>
+        
+        <button 
+          onClick={loadHistory}
+          disabled={loading}
+          className="p-3 bg-surface-container-highest border border-outline-variant rounded-full text-on-surface hover:text-primary transition-all active:scale-90"
+          title="Refresh Data"
+        >
+          <svg className={`w-5 h-5 ${loading ? 'animate-spin text-primary' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -233,11 +275,18 @@ export default function EmployeeHome() {
               )}
           </div>
 
+          {/* Holiday and Leave Logic Block */}
           {todayHoliday ? (
             <div className="bg-tertiary-container/20 border-2 border-tertiary p-6 rounded-xl text-center">
               <span className="font-label-caps text-tertiary tracking-widest text-xs uppercase block mb-2">System Locked</span>
               <h3 className="font-headline-sm text-xl text-on-surface uppercase">{todayHoliday.title}</h3>
               <p className="text-sm text-on-surface-variant mt-1">Attendance tracking is disabled for today.</p>
+            </div>
+          ) : onLeaveToday ? (
+            <div className="bg-[#1a2e21] border-2 border-[#4edea3] p-6 rounded-xl text-center">
+              <span className="font-label-caps text-[#4edea3] tracking-widest text-xs uppercase block mb-2">Leave Active</span>
+              <h3 className="font-headline-sm text-xl text-on-surface uppercase">Approved Time Off</h3>
+              <p className="text-sm text-on-surface-variant mt-1">Enjoy your time off! Attendance tracking is disabled.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -298,13 +347,12 @@ export default function EmployeeHome() {
           </div>
         </div>
       </div>
-
-      {/* --- NEW: LEAVE MANAGEMENT SECTION --- */}
+      
+      {/* --- LEAVE MANAGEMENT SECTION --- */}
       <div className="mt-12 border-t border-outline-variant pt-8">
         <h2 className="font-headline-sm text-2xl text-on-surface uppercase tracking-wider mb-6">Leave Management</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Request Form */}
           <div className="lg:col-span-5 bg-surface-container border border-outline-variant rounded-xl p-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
             <h3 className="font-headline-sm text-lg uppercase mb-4 text-on-surface">Request Time Off</h3>
@@ -350,7 +398,6 @@ export default function EmployeeHome() {
             </form>
           </div>
 
-          {/* Leave History Table */}
           <div className="lg:col-span-7 bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead className="bg-surface-container-highest border-b border-outline-variant">
