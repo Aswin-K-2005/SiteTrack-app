@@ -77,7 +77,7 @@ export default function OverviewTab() {
             <span className="w-3 h-3 rounded-full bg-secondary animate-pulse"></span>
           </div>
           <div className="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden">
-            <div className="h-full bg-secondary w-full"></div>
+            <div className="h-full bg-[#4edea3] w-full"></div>
           </div>
           <p className="text-[10px] mt-2 text-on-surface-variant uppercase">All geofences operational</p>
         </div>

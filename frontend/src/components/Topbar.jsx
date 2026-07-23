@@ -26,11 +26,12 @@ export default function Topbar() {
         
         {user && (
           <div className="flex items-center gap-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary-container/10 border border-secondary/30 rounded-full text-secondary text-xs font-label-caps tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1a2e21] border border-[#4edea3]/30 rounded-full text-[#4edea3] text-xs font-label-caps tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
               {user.role === "admin" ? "Admin" : "On Site"}
             </div>
             <button 
+
               className="px-3 py-1.5 border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/50 font-label-caps text-xs rounded transition-all cursor-pointer" 
               onClick={handleLogout}
             >

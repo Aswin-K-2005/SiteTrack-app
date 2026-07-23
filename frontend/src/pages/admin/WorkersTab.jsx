@@ -308,19 +308,34 @@ export default function WorkersTab() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => handleEditClick(w)} className="text-secondary hover:text-primary transition-colors btn-push" title="Edit Profile">
-                        <span className="material-symbols-outlined">edit</span>
+                      <button 
+                        onClick={() => handleEditClick(w)} 
+                        className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm" 
+                        title="Edit Profile"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
                       </button>
-                      <button onClick={() => handleReset(w.id)} className="text-secondary hover:text-primary transition-colors btn-push" title="Reset Key">
-                        <span className="material-symbols-outlined">key</span>
+                      
+                      <button 
+                        onClick={() => handleReset(w.id)} 
+                        className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm" 
+                        title="Reset Key"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">key</span>
                       </button>
+                      
                       {w.username !== "admin" && (
-                        <button onClick={() => handleDelete(w.id, w.name)} className="text-secondary hover:text-error transition-colors btn-push" title="Purge Profile">
-                          <span className="material-symbols-outlined">delete</span>
+                        <button 
+                          onClick={() => handleDelete(w.id, w.name)} 
+                          className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-error hover:text-error hover:bg-error-container/20 transition-all btn-push rounded shadow-sm" 
+                          title="Purge Profile"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                       )}
-                    </div>
-                  </td>
+                    </div>                  
+                    </td>
+
                 </tr>
               ))
             )}
