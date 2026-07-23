@@ -48,7 +48,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* MOBILE BOTTOM NAV - BULLETPROOF GLASSMORPHISM & SAFE AREA */}
+    {/* MOBILE BOTTOM NAV - BULLETPROOF GLASSMORPHISM & SAFE AREA */}
       <div 
         className="md:hidden fixed left-0 right-0 w-full border-t border-outline-variant/50 z-[100] flex justify-around items-center px-2 pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.6)]"
         style={{
@@ -59,6 +59,7 @@ export default function AdminDashboard() {
           paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' /* Forces padding down into the physical bezel */
         }}
       >
+
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (

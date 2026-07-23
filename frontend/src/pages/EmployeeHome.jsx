@@ -206,19 +206,19 @@ export default function EmployeeHome() {
   return (
     <div className="flex-grow pt-24 pb-28 md:pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface relative">
       
-      {/* MOBILE BOTTOM NAV - GLASSMORPHISM & SAFE AREA FIX */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-[#0d131f]/80 backdrop-blur-xl border-t border-outline-variant/50 z-[100] flex justify-around items-center px-2 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        {MOBILE_TABS.map((t) => {
-          const isActive = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex flex-col items-center justify-center min-w-[80px] transition-all btn-push ${
-                isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              <div className={`flex items-center justify-center px-6 py-1.5 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
+      {/* MOBILE BOTTOM NAV - BULLETPROOF GLASSMORPHISM & SAFE AREA */}
+      <div 
+        className="md:hidden fixed left-0 right-0 w-full border-t border-outline-variant/50 z-[100] flex justify-around items-center px-2 pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.6)]"
+        style={{
+          bottom: 0,
+          backgroundColor: 'rgba(26, 32, 44, 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          /* THE FIX: Dynamically fill the gap, defaulting to 16px if no safe area exists */
+          paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' 
+        }}
+      >             
+        <div className={`flex items-center justify-center px-6 py-1.5 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
                 <span 
                   className="material-symbols-outlined text-2xl transition-all"
                   style={{ 

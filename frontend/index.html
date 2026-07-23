@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+ <head>
     <meta charset="UTF-8" />
-   <!-- Modern Favicon Links -->
+    
+    <!-- Modern Favicon Links -->
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-    
-    <!-- Apple Touch Icon for iOS Home Screen -->
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-    
-    <!-- Web App Manifest for Android/PWA -->
     <link rel="manifest" href="/favicon/site.webmanifest" />    
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-   <title>SiteTrack - AA&S Constructions</title>
+    
+    <!-- THE FIX: EDGE-TO-EDGE PWA META TAGS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#0c1322" />
 
     <!-- THE BULLETPROOF MATERIAL ICONS LINK -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" />
-    
-  </head>
+    <title>SiteTrack - AA&S Constructions</title>
+  </head> 
   <body class="bg-[#0c1322] text-slate-200">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
