@@ -3,14 +3,13 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Courier+Prime&display=swap');
 
-
 body {
     background-color: #0d131f;
     color: #dde2f3;
     -webkit-font-smoothing: antialiased;
-}
+} /* <--- THIS BRACE WAS MISSING! */
 
-/* FIX 2: Added ligature protections to stop text-transform or spacing from breaking the icons */
+/* Added ligature protections to stop text-transform or spacing from breaking the icons */
 .material-symbols-outlined {
     font-family: 'Material Symbols Outlined' !important;
     font-weight: normal;
@@ -23,7 +22,9 @@ body {
     white-space: nowrap;
     direction: ltr;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}/* =========================================================
+}
+
+/* =========================================================
    INDUSTRIAL UI THEME 
    ========================================================= */
 .industrial-table {
@@ -56,34 +57,29 @@ body {
     animation: reverse-spin linear infinite;
 }
 
-/* ... keep your existing leaflet CSS below this ... */
-
 /* =========================================================
    DARK THEME MAP LEAFLET SEARCH & ZOOM OVERRIDES
    ========================================================= */
-/* Target the dynamic layout structures injected by the plugin */
 .leaflet-control-geosearch form,
 .leaflet-control-geosearch input,
 .glass input,
 .glass form {
   background-color: #ffffff !important;
-  color: #000000 !important; /* Forces typed character visibility to solid black */
+  color: #000000 !important;
   border: 1px solid #374151 !important;
   border-radius: 6px !important;
 }
 
 .leaflet-control-geosearch input::placeholder {
-  color: #6b7280 !important; /* High contrast dark grey search text placeholder */
+  color: #6b7280 !important;
 }
 
-/* Clear reset buttons */
 .leaflet-control-geosearch a.reset {
   background: #f3f4f6 !important;
   color: #0b0f19 !important;
   border-left: 1px solid #374151 !important;
 }
 
-/* Dynamic dropdown search results list mapping */
 .leaflet-control-geosearch .results,
 .leaflet-control-geosearch .results > * {
   background-color: #ffffff !important;
@@ -96,14 +92,12 @@ body {
   color: #ff7a19 !important;
 }
 
-/* General Leaflet Control Box Elements (Zoom +, - buttons) */
 .leaflet-bar a, 
 .leaflet-bar a:hover {
   background-color: #0c1322 !important;
   color: #dce2f7 !important;
   border-bottom: 1px solid #374151 !important;
 }
-
 .leaflet-bar {
   border: 1px solid #374151 !important;
 }
@@ -114,8 +108,6 @@ body {
 .leaflet-container {
   background: #0c1322 !important;
 }
-
-/* Force the map container and all its internal panes below the Topbar navigation layer */
 .leaflet-container,
 .leaflet-pane,
 .leaflet-top,
