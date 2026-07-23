@@ -221,7 +221,10 @@ export default function EmployeeHome() {
               <div className={`flex items-center justify-center px-6 py-1.5 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
                 <span 
                   className="material-symbols-outlined text-2xl transition-all"
-                  style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                  style={{ 
+                    fontFamily: "'Material Symbols Outlined', sans-serif",
+                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+
                 >
                   {t.icon}
                 </span>

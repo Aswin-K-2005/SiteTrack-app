@@ -63,7 +63,9 @@ export default function AdminDashboard() {
               <div className={`flex items-center justify-center px-4 py-1 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
                 <span 
                   className="material-symbols-outlined text-2xl transition-all"
-                  style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                  style={{
+                    fontFamily: "'Material Symbols Outlined', sans-serif",
+                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
                 >
                   {t.icon}
                 </span>
