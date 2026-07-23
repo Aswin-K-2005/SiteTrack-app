@@ -9,7 +9,6 @@ import Home from "./pages/Home";
 function Layout({ children }) {
   const { user } = useAuth();
   return (
-    /* THE FIX: min-h-[100dvh] forces the wrapper to respect physical mobile screen bounds */
     <div className="min-h-[100dvh] flex flex-col bg-background text-on-surface font-body-md select-none relative overflow-x-hidden">
       <Topbar />
       <main className={`flex-grow w-full mx-auto px-6 pt-24 pb-12 z-10 ${user?.role === "admin" ? "max-w-7xl" : "max-w-xl"}`}>
