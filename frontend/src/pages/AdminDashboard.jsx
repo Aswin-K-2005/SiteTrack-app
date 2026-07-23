@@ -13,18 +13,26 @@ const TABS = [
   { id: "leaves", label: "Leaves" },
 ];
 
+const MOBILE_TABS = [
+  { id: "overview", label: "Dashboard", icon: "dashboard" },
+  { id: "workers", label: "Directory", icon: "badge" },
+  { id: "sites", label: "Sites", icon: "location_on" },
+  { id: "holidays", label: "Schedule", icon: "event" },
+  { id: "leaves", label: "Leaves", icon: "edit_document" },
+];
+
 export default function AdminDashboard() {
   const [tab, setTab] = useState("overview");
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 pb-24 md:pb-0">
       <div>
         <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Admin Dashboard</h1>
         <p className="font-body-md text-sm text-on-surface-variant mt-1">Manage sites, worker credentials, and automatic geofence rosters.</p>
       </div>
 
-      {/* Modern High-Contrast Dynamic Tab Selector Row */}
-      <div className="bg-surface-container-high p-1 rounded-xl flex max-w-md w-full border border-outline-variant">
+      {/* DESKTOP TABS: Hidden on mobile */}
+      <div className="hidden md:flex bg-surface-container-high p-1 rounded-xl max-w-md w-full border border-outline-variant">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -40,13 +48,40 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {/* MOBILE BOTTOM NAV: Visible on mobile screens */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t-2 border-outline-variant z-50 flex justify-around items-center px-2 py-3 safe-area-pb">
+        {MOBILE_TABS.map((t) => {
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex flex-col items-center justify-center min-w-[64px] transition-all btn-push ${
+                isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              <div className={`flex items-center justify-center px-4 py-1 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
+                <span 
+                  className="material-symbols-outlined text-2xl transition-all"
+                  style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  {t.icon}
+                </span>
+              </div>
+              <span className={`font-label-caps text-[10px] tracking-wider ${isActive ? "font-bold" : ""}`}>
+                {t.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="pt-2">
         {tab === "overview" && <OverviewTab />}
         {tab === "workers" && <WorkersTab />}
         {tab === "sites" && <SitesTab />}
         {tab === "holidays" && <HolidaysTab />}
         {tab === "leaves" && <LeavesTab />}
-
       </div>
     </div>
   );

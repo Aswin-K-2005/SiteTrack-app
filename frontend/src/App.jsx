@@ -9,11 +9,18 @@ import Home from "./pages/Home";
 function Layout({ children }) {
   const { user } = useAuth();
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface font-body-md select-none">
+    <div className="min-h-screen flex flex-col bg-background text-on-surface font-body-md select-none relative overflow-x-hidden">
       <Topbar />
-      <main className={`flex-grow w-full mx-auto px-6 pt-24 pb-12 ${user?.role === "admin" ? "max-w-7xl" : "max-w-xl"}`}>
+      <main className={`flex-grow w-full mx-auto px-6 pt-24 pb-12 z-10 ${user?.role === "admin" ? "max-w-7xl" : "max-w-xl"}`}>
         {children}
       </main>
+
+      {/* Industrial Animated Wireframe Background Overlay */}
+      <div className="fixed bottom-8 right-8 pointer-events-none opacity-20 z-0 hidden md:block">
+        <div className="w-48 h-48 border-[1px] border-primary flex items-center justify-center animate-spin" style={{ animationDuration: '20s' }}>
+          <div className="w-40 h-40 border-[1px] border-primary/50 animate-reverse-spin" style={{ animationDuration: '15s' }}></div>
+        </div>
+      </div>
     </div>
   );
 }

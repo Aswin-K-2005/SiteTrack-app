@@ -31,6 +31,9 @@ function timeLabel(iso) {
 export default function EmployeeHome() {
   const { user } = useAuth();
   
+  // Tab State for Mobile
+  const [tab, setTab] = useState("attendance");
+
   // Existing States
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +43,7 @@ export default function EmployeeHome() {
   const [currentLat, setCurrentLat] = useState(null);
   const [currentLon, setCurrentLon] = useState(null);
   const [todayHoliday, setTodayHoliday] = useState(null);
-  const [onLeaveToday, setOnLeaveToday] = useState(false); // <-- Added Leave State
+  const [onLeaveToday, setOnLeaveToday] = useState(false);
 
   // Leave Request States
   const [leaves, setLeaves] = useState([]);
@@ -52,7 +55,6 @@ export default function EmployeeHome() {
 
   const loadHistory = useCallback(async () => {
     try {
-      // Fetch attendance, holidays, AND leave requests at the exact same time
       const [attRes, holRes, leaveRes] = await Promise.all([
         client.get("/attendance/me"),
         client.get("/holidays"),
@@ -70,7 +72,6 @@ export default function EmployeeHome() {
       });
       setTodayHoliday(holidayToday || null);
 
-      // Check if worker has an approved leave active today
       const activeLeave = leaveRes.data.find(l => 
         l.status === 'approved' && 
         l.start_date <= todayStr && 
@@ -85,12 +86,10 @@ export default function EmployeeHome() {
     }
   }, [user]);
 
-  // Push notifications listener
   useEffect(() => {
     listenForMessages();
   }, []);
 
-  // NEW: Auto-refresh data when the app comes back to the foreground
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -107,7 +106,6 @@ export default function EmployeeHome() {
     };
   }, [loadHistory]);
 
-  // Live GPS Tracking
   useEffect(() => {
     loadHistory();
     if (navigator.geolocation) {
@@ -153,7 +151,22 @@ export default function EmployeeHome() {
     }
   }
 
-  // Submit Leave Request Handler
+  async function handleUndoCheckout() {
+    if (!window.confirm("Are you sure you want to undo your check-out? You will be placed back on the clock.")) return;
+    
+    setError(""); setInfo("");
+    setBusy(true);
+    try {
+      await client.delete("/attendance/undo");
+      setInfo("Check-out reversed. Your shift is active again.");
+      await loadHistory();
+    } catch (err) {
+      setError(apiErrorMessage(err, "Could not reverse check-out."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleLeaveSubmit(e) {
     e.preventDefault();
     setLeaveMsg(""); 
@@ -185,20 +198,57 @@ export default function EmployeeHome() {
     );
   }
 
+  const MOBILE_TABS = [
+    { id: "attendance", label: "Tracker", icon: "my_location" },
+    { id: "leaves", label: "Time Off", icon: "event_busy" }
+  ];
+
   return (
-    <div className="flex-grow pt-24 pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface">
+    <div className="flex-grow pt-24 pb-28 md:pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface relative">
       
-      {/* Header Section with Manual Refresh Button */}
+      {/* MOBILE BOTTOM NAV */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t-2 border-outline-variant z-50 flex justify-around items-center px-2 py-3 safe-area-pb">
+        {MOBILE_TABS.map((t) => {
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex flex-col items-center justify-center min-w-[80px] transition-all btn-push ${
+                isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              <div className={`flex items-center justify-center px-6 py-1.5 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
+                <span 
+                  className="material-symbols-outlined text-2xl transition-all"
+                  style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  {t.icon}
+                </span>
+              </div>
+              <span className={`font-label-caps text-[10px] tracking-wider ${isActive ? "font-bold" : ""}`}>
+                {t.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Header Section */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Mark Attendance</h1>
-          <p className="font-body-md text-sm text-on-surface-variant mt-2">Confirm your site location and record your entry/exit.</p>
+          <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">
+            {tab === "attendance" ? "Mark Attendance" : "Leave Hub"}
+          </h1>
+          <p className="font-body-md text-sm text-on-surface-variant mt-2">
+            {tab === "attendance" ? "Confirm your site location and record your entry/exit." : "Manage your time off requests and schedule."}
+          </p>
         </div>
         
         <button 
           onClick={loadHistory}
           disabled={loading}
-          className="p-3 bg-surface-container-highest border border-outline-variant rounded-full text-on-surface hover:text-primary transition-all active:scale-90"
+          className="p-3 bg-surface-container border border-outline-variant rounded-full text-on-surface hover:text-primary transition-all btn-push"
           title="Refresh Data"
         >
           <svg className={`w-5 h-5 ${loading ? 'animate-spin text-primary' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,150 +257,167 @@ export default function EmployeeHome() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-surface-container border border-outline-variant p-4 flex items-center justify-between">
-            <div>
-              <span className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-1">CURRENT STATUS</span>
-              {done ? (
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-error-container/20 text-error border border-error/30 rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-error"></span>
-                  <span className="font-label-caps text-xs uppercase">Checked Out</span>
-                </div>
-              ) : hasIn ? (
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1a2e21] text-[#4edea3] rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-secondary"></span>
-                  <span className="font-label-caps text-xs uppercase">Checked In</span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest text-on-surface-variant rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-outline"></span>
-                  <span className="font-label-caps text-xs uppercase">Not Checked In</span>
-                </div>
-              )}
-            </div>
-            <div className="text-right">
-              <span className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-1">LAST ACTION</span>
-              <span className="font-body-md text-sm font-bold">
-                {done ? timeLabel(hasOut.timestamp) : hasIn ? timeLabel(hasIn.timestamp) : "--:--"}
-              </span>
-            </div>
-          </div>
-
-          {error && <div className="bg-error-container/20 border-l-4 border-error p-3 text-xs text-error">{error}</div>}
-          {info && <div className="bg-[#1a2e21] border-l-4 border-secondary p-3 text-xs text-[#4edea3]">{info}</div>}
-
-          <div className="mt-4">
-              <h2 className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-2 uppercase">Your Workstations</h2>
-              {user?.sites?.length > 0 ? (
-                  <div className="space-y-3">
-                      {user.sites.map(site => {
-                          const distance = calculateDistance(currentLat, currentLon, site.latitude, site.longitude);
-                          const isOnSite = distance !== null && distance <= site.radius_m;
-
-                          return (
-                              <div key={site.id} className="p-4 bg-surface-container-low border border-outline-variant rounded-lg flex justify-between items-center">
-                                  <div>
-                                      <h3 className="font-bold text-on-surface text-sm">{site.name}</h3>
-                                      <p className="text-[10px] text-on-surface-variant uppercase mt-1">Radius: {site.radius_m}m</p>
-                                  </div>
-                                  {isOnSite ? (
-                                      <span className="bg-[#1a2e21] text-[#4edea3] px-2.5 py-1 rounded text-[10px] font-bold tracking-wide border border-secondary/30 flex items-center gap-1.5">
-                                          <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
-                                          ON SITE
-                                      </span>
-                                  ) : (
-                                      <span className="bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded text-[10px] font-bold">
-                                          {distance !== null ? `${Math.round(distance)}m away` : 'Locating...'}
-                                      </span>
-                                  )}
-                              </div>
-                          );
-                      })}
+      {/* SECTION 1: ATTENDANCE TRACKER */}
+      <div className={`${tab === "attendance" ? "block" : "hidden md:block"}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-5 space-y-6">
+            
+            <div className="bg-surface-container border border-outline-variant p-4 flex items-center justify-between">
+              <div>
+                <span className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-1">CURRENT STATUS</span>
+                {done ? (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-error-container/20 text-error border border-error/30 rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-error"></span>
+                    <span className="font-label-caps text-xs uppercase">Checked Out</span>
                   </div>
-              ) : (
-                  <div className="p-4 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant/70 text-sm">
-                      You have not been assigned to any sites yet.
+                ) : hasIn ? (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1a2e21] text-[#4edea3] rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-secondary"></span>
+                    <span className="font-label-caps text-xs uppercase">Checked In</span>
                   </div>
-              )}
-          </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest text-on-surface-variant rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-outline"></span>
+                    <span className="font-label-caps text-xs uppercase">Not Checked In</span>
+                  </div>
+                )}
+              </div>
+              <div className="text-right">
+                <span className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-1">LAST ACTION</span>
+                <span className="font-body-md text-sm font-bold">
+                  {done ? timeLabel(hasOut.timestamp) : hasIn ? timeLabel(hasIn.timestamp) : "--:--"}
+                </span>
+              </div>
+            </div>
 
-          {/* Holiday and Leave Logic Block */}
-          {todayHoliday ? (
-            <div className="bg-tertiary-container/20 border-2 border-tertiary p-6 rounded-xl text-center">
-              <span className="font-label-caps text-tertiary tracking-widest text-xs uppercase block mb-2">System Locked</span>
-              <h3 className="font-headline-sm text-xl text-on-surface uppercase">{todayHoliday.title}</h3>
-              <p className="text-sm text-on-surface-variant mt-1">Attendance tracking is disabled for today.</p>
-            </div>
-          ) : onLeaveToday ? (
-            <div className="bg-[#1a2e21] border-2 border-[#4edea3] p-6 rounded-xl text-center">
-              <span className="font-label-caps text-[#4edea3] tracking-widest text-xs uppercase block mb-2">Leave Active</span>
-              <h3 className="font-headline-sm text-xl text-on-surface uppercase">Approved Time Off</h3>
-              <p className="text-sm text-on-surface-variant mt-1">Enjoy your time off! Attendance tracking is disabled.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button
-                onClick={() => handleMark("in")}
-                disabled={hasIn || busy}
-                className="flex flex-col items-center justify-center gap-3 py-6 bg-primary-container text-on-primary font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
-              >
-                <span className="font-headline-sm text-lg uppercase tracking-wider">Check In</span>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </button>
-              
-              <button
-                onClick={() => handleMark("out")}
-                disabled={!willCheckout || busy}
-                className="flex flex-col items-center justify-center gap-3 py-6 border-2 border-outline-variant text-on-surface font-bold hover:border-error transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
-              >
-                <span className="font-headline-sm text-lg uppercase tracking-wider">Check Out</span>
-                <div className="absolute inset-0 bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </button>
-            </div>
-          )}
-        </div>
+            {error && <div className="bg-error-container/20 border-l-4 border-error p-3 text-xs text-error">{error}</div>}
+            {info && <div className="bg-[#1a2e21] border-l-4 border-secondary p-3 text-xs text-[#4edea3]">{info}</div>}
 
-        <div className="lg:col-span-7 space-y-4">
-          <h2 className="font-headline-sm text-xl text-on-surface uppercase tracking-wider">Your Recent Activity</h2>
-          <div className="overflow-x-auto bg-surface-container border border-outline-variant">
-            {history.length === 0 ? (
-              <div className="p-8 text-center text-on-surface-variant/50">No attendance historical logs mapped yet.</div>
+            <div className="mt-4">
+                <h2 className="font-label-caps text-xs tracking-wider text-on-surface-variant block mb-2 uppercase">Your Workstations</h2>
+                {user?.sites?.length > 0 ? (
+                    <div className="space-y-3">
+                        {user.sites.map(site => {
+                            const distance = calculateDistance(currentLat, currentLon, site.latitude, site.longitude);
+                            const isOnSite = distance !== null && distance <= site.radius_m;
+
+                            return (
+                                <div key={site.id} className="p-4 bg-surface-container-low border border-outline-variant rounded-lg flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-bold text-on-surface text-sm">{site.name}</h3>
+                                        <p className="text-[10px] text-on-surface-variant uppercase mt-1">Radius: {site.radius_m}m</p>
+                                    </div>
+                                    {isOnSite ? (
+                                        <span className="bg-[#1a2e21] text-[#4edea3] px-2.5 py-1 rounded text-[10px] font-bold tracking-wide border border-secondary/30 flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                                            ON SITE
+                                        </span>
+                                    ) : (
+                                        <span className="bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded text-[10px] font-bold">
+                                            {distance !== null ? `${Math.round(distance)}m away` : 'Locating...'}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="p-4 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant/70 text-sm">
+                        You have not been assigned to any sites yet.
+                    </div>
+                )}
+            </div>
+
+            {todayHoliday ? (
+              <div className="bg-tertiary-container/20 border-2 border-tertiary p-6 rounded-xl text-center">
+                <span className="font-label-caps text-tertiary tracking-widest text-xs uppercase block mb-2">System Locked</span>
+                <h3 className="font-headline-sm text-xl text-on-surface uppercase">{todayHoliday.title}</h3>
+                <p className="text-sm text-on-surface-variant mt-1">Attendance tracking is disabled for today.</p>
+              </div>
+            ) : onLeaveToday ? (
+              <div className="bg-[#1a2e21] border-2 border-[#4edea3] p-6 rounded-xl text-center">
+                <span className="font-label-caps text-[#4edea3] tracking-widest text-xs uppercase block mb-2">Leave Active</span>
+                <h3 className="font-headline-sm text-xl text-on-surface uppercase">Approved Time Off</h3>
+                <p className="text-sm text-on-surface-variant mt-1">Enjoy your time off! Attendance tracking is disabled.</p>
+              </div>
+            ) : done ? (
+              <div className="bg-surface-container border-2 border-outline-variant p-6 rounded-xl text-center mt-4">
+                <h3 className="font-headline-sm text-xl text-on-surface uppercase mb-1">Shift Completed</h3>
+                <p className="text-sm text-on-surface-variant mb-6">Your final check-out has been recorded for today.</p>
+                
+                <button 
+                  onClick={handleUndoCheckout} 
+                  disabled={busy}
+                  className="text-xs font-label-caps text-secondary hover:text-primary transition-colors btn-push flex items-center justify-center gap-2 mx-auto disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[16px]">history</span>
+                  Accidentally checked out? Undo here.
+                </button>
+              </div>
             ) : (
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-surface-container-highest border-b border-outline-variant">
-                  <tr>
-                    <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DATE</th>
-                    <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">TYPE</th>
-                    <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">TIME</th>
-                    <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DISTANCE</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant">
-                  {history.slice(0, 10).map((r) => (
-                    <tr key={r.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-4 font-body-md text-sm">{dateLabel(r.record_date)}</td>
-                      <td className="px-4 py-4">
-                        {r.type === "check_in" || r.type === "in" ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#1a2e21] text-[#4edea3] font-label-caps text-[10px] rounded">IN</span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-error-container/20 text-error font-label-caps text-[10px] rounded">OUT</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 font-body-md text-sm text-on-surface-variant">{timeLabel(r.timestamp)}</td>
-                      <td className="px-4 py-4 font-body-md text-sm">{Math.round(r.distance_m)}m</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  onClick={() => handleMark("in")}
+                  disabled={hasIn || busy}
+                  className="flex flex-col items-center justify-center gap-3 py-6 bg-primary-container text-on-primary font-bold transition-all btn-push disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
+                >
+                  <span className="font-headline-sm text-lg uppercase tracking-wider">Check In</span>
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+                
+                <button
+                  onClick={() => handleMark("out")}
+                  disabled={!willCheckout || busy}
+                  className="flex flex-col items-center justify-center gap-3 py-6 border-2 border-outline-variant text-on-surface font-bold hover:border-error transition-all btn-push disabled:opacity-40 disabled:cursor-not-allowed group relative overflow-hidden"
+                >
+                  <span className="font-headline-sm text-lg uppercase tracking-wider">Check Out</span>
+                  <div className="absolute inset-0 bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+              </div>
             )}
+          </div>
+
+          <div className="lg:col-span-7 space-y-4">
+            <h2 className="font-headline-sm text-xl text-on-surface uppercase tracking-wider">Your Recent Activity</h2>
+            <div className="overflow-x-auto bg-surface-container border border-outline-variant rounded-lg">
+              {history.length === 0 ? (
+                <div className="p-8 text-center text-on-surface-variant/50">No attendance historical logs mapped yet.</div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-surface-container-highest border-b border-outline-variant">
+                    <tr>
+                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DATE</th>
+                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">TYPE</th>
+                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">TIME</th>
+                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DISTANCE</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant">
+                    {history.slice(0, 10).map((r) => (
+                      <tr key={r.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-4 py-4 font-body-md text-sm">{dateLabel(r.record_date)}</td>
+                        <td className="px-4 py-4">
+                          {r.type === "check_in" || r.type === "in" ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#1a2e21] text-[#4edea3] font-label-caps text-[10px] rounded border border-secondary/30">IN</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-error-container/20 text-error font-label-caps text-[10px] rounded border border-error/30">OUT</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 font-body-md text-sm text-on-surface-variant">{timeLabel(r.timestamp)}</td>
+                        <td className="px-4 py-4 font-body-md text-sm">{Math.round(r.distance_m)}m</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
       </div>
       
-      {/* --- LEAVE MANAGEMENT SECTION --- */}
-      <div className="mt-12 border-t border-outline-variant pt-8">
-        <h2 className="font-headline-sm text-2xl text-on-surface uppercase tracking-wider mb-6">Leave Management</h2>
+      {/* SECTION 2: LEAVE MANAGEMENT */}
+      <div className={`mt-0 md:mt-12 md:border-t md:border-outline-variant md:pt-8 ${tab === "leaves" ? "block" : "hidden md:block"}`}>
+        <h2 className="hidden md:block font-headline-sm text-2xl text-on-surface uppercase tracking-wider mb-6">Leave Management</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-5 bg-surface-container border border-outline-variant rounded-xl p-6 relative overflow-hidden">
@@ -391,7 +458,7 @@ export default function EmployeeHome() {
               
               <button 
                 type="submit" disabled={leaveBusy} 
-                className="w-full bg-surface-container-highest border border-outline-variant text-on-surface font-bold py-3 mt-2 rounded-lg uppercase tracking-wider hover:border-primary hover:text-primary transition-all disabled:opacity-50"
+                className="w-full bg-surface-container-highest border border-outline-variant text-on-surface font-bold py-3 mt-2 rounded-lg uppercase tracking-wider hover:border-primary hover:text-primary transition-all disabled:opacity-50 btn-push"
               >
                 {leaveBusy ? "Submitting..." : "Submit Request"}
               </button>
