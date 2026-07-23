@@ -48,8 +48,8 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* MOBILE BOTTOM NAV: Visible on mobile screens */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t-2 border-outline-variant z-50 flex justify-around items-center px-2 py-3 safe-area-pb">
+      {/* MOBILE BOTTOM NAV: Glassmorphism & Safe-Area Snapping */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/50 z-50 flex justify-around items-center px-2 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_40px_rgba(0,0,0,0.4)]">
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (
@@ -63,9 +63,10 @@ export default function AdminDashboard() {
               <div className={`flex items-center justify-center px-4 py-1 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
                 <span 
                   className="material-symbols-outlined text-2xl transition-all"
-                  style={{
+                  style={{ 
                     fontFamily: "'Material Symbols Outlined', sans-serif",
-                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" 
+                  }}
                 >
                   {t.icon}
                 </span>
@@ -77,7 +78,6 @@ export default function AdminDashboard() {
           );
         })}
       </div>
-
       <div className="pt-2">
         {tab === "overview" && <OverviewTab />}
         {tab === "workers" && <WorkersTab />}

@@ -206,8 +206,8 @@ export default function EmployeeHome() {
   return (
     <div className="flex-grow pt-24 pb-28 md:pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface relative">
       
-      {/* MOBILE BOTTOM NAV */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t-2 border-outline-variant z-50 flex justify-around items-center px-2 py-3 safe-area-pb">
+      {/* MOBILE BOTTOM NAV - GLASSMORPHISM & SAFE AREA FIX */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-[#0d131f]/80 backdrop-blur-xl border-t border-outline-variant/50 z-[100] flex justify-around items-center px-2 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (
@@ -223,8 +223,8 @@ export default function EmployeeHome() {
                   className="material-symbols-outlined text-2xl transition-all"
                   style={{ 
                     fontFamily: "'Material Symbols Outlined', sans-serif",
-                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
-
+                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" 
+                  }}
                 >
                   {t.icon}
                 </span>
@@ -236,7 +236,6 @@ export default function EmployeeHome() {
           );
         })}
       </div>
-
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between">
         <div>
