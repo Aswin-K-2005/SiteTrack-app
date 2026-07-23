@@ -223,14 +223,14 @@ export default function EmployeeHome() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex flex-col items-center justify-center min-w-[80px] transition-all btn-push ${
+              className={`flex flex-col items-center justify-center min-w-[64px] transition-all btn-push ${
                 isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <div className={`flex items-center justify-center px-6 py-1.5 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
+              <div className={`flex items-center justify-center px-4 py-1 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
                 <span 
                   className="material-symbols-outlined text-2xl transition-all"
-                  style={{ 
+                  style={{
                     fontFamily: "'Material Symbols Outlined', sans-serif",
                     fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" 
                   }}
