@@ -3,8 +3,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Courier+Prime&display=swap');
 
-/* FIX 1: Variables sorted alphabetically (FILL, GRAD, opsz, wght) so Google Fonts accepts the request */
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL,GRAD,opsz,wght@0..1,-50..200,20..48,100..700&display=swap');
 
 body {
     background-color: #0d131f;
