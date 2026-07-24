@@ -210,13 +210,15 @@ export default function EmployeeHome() {
       <div 
         className="md:hidden fixed left-0 right-0 w-full border-t border-outline-variant/50 z-[100] flex justify-around items-center px-2 pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.6)]"
         style={{
-          bottom: '0px',
-          backgroundColor: 'rgba(12, 19, 34, 0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' 
-        }}
-      >
+          /* THE FIX: Hovers 16px above the system gap so it floats like a pill */
+          bottom: 'calc(env(safe-area-inset-bottom, 12px) + 16px)', 
+          left: '16px',
+          right: '16px',
+          backgroundColor: 'rgba(26, 32, 44, 0.85)', /* Dark industrial theme with 85% opacity */
+          backdropFilter: 'blur(24px)', /* Heavy frosted glass effect */
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: '40px', /* Perfect WhatsApp-style extreme curves */
+        }}      >
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (

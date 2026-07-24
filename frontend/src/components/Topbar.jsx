@@ -11,11 +11,15 @@ export default function Topbar() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+    <div 
+      className="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30"
+      /* THE FIX: Pushes the inner content below the iPhone notch automatically */
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
       {/* Industrial Construction Hazard Stripes Accent */}
-      <div className="h-1.5 w-full bg-repeating-linear-gradient from-tertiary via-background to-tertiary" 
-           style={{ backgroundImage: 'repeating-linear-gradient(135deg, #f9bd22 0 10px, #0c1322 10px 20px)' }}></div>
-      
+      <div className="h-1.5 w-full bg-repeating-linear-gradient from-tertiary via-background to-tertiary"
+            style={{ backgroundImage: 'repeating-linear-gradient(135deg, #f9bd22 0 10px, #0c1322 10px 20px)' }}></div>
+            
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <div>
           <div className="font-label-caps text-[10px] tracking-widest text-primary-container font-bold uppercase">SiteTrack App</div>
@@ -31,9 +35,8 @@ export default function Topbar() {
               {user.role === "admin" ? "Admin" : "On Site"}
             </div>
             <button 
-
-              className="px-3 py-1.5 border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/50 font-label-caps text-xs rounded transition-all cursor-pointer" 
-              onClick={handleLogout}
+               className="px-3 py-1.5 border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/50 font-label-caps text-xs rounded transition-all cursor-pointer"
+               onClick={handleLogout}
             >
               Log out
             </button>

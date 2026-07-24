@@ -51,16 +51,18 @@ export default function AdminDashboard() {
       {/* MOBILE BOTTOM NAV - WHATSAPP STYLE FLOATING PILL */}
       <div 
         className="md:hidden fixed z-[100] flex justify-around items-center px-2 py-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-outline-variant/30"
-        style={{
-          /* THE FIX: Hovers 16px above the system gap so it floats like a pill */
-          bottom: 'calc(env(safe-area-inset-bottom, 12px) + 16px)', 
+       style={{
+          /* THE TWEAK: Lowered the extra lift from 16px to 8px to sit much closer to the bottom edge */
+          bottom: 'calc(env(safe-area-inset-bottom, 8px) + 8px)', 
           left: '16px',
           right: '16px',
-          backgroundColor: 'rgba(26, 32, 44, 0.85)', /* Dark industrial theme with 85% opacity */
-          backdropFilter: 'blur(24px)', /* Heavy frosted glass effect */
+          /* THE TWEAK: Dropped opacity from 0.85 to 0.65 for a massive glassmorphism boost */
+          backgroundColor: 'rgba(12, 19, 34, 0.65)', 
+          backdropFilter: 'blur(24px)', 
           WebkitBackdropFilter: 'blur(24px)',
-          borderRadius: '40px', /* Perfect WhatsApp-style extreme curves */
+          borderRadius: '40px', 
         }}
+
       >
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
