@@ -5,11 +5,11 @@ export default function WorkersTab() {
   const [workers, setWorkers] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Edit State
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: "", username: "", password: "", site_ids: [] });
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,6 +33,7 @@ export default function WorkersTab() {
       setError("Fill in all required fields.");
       return;
     }
+
     setBusy(true);
     try {
       if (editingId) {
@@ -111,30 +112,29 @@ export default function WorkersTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12 text-secondary font-mono-data text-lg gap-3">
+      <div className="flex items-center justify-center py-12 text-on-surface-variant font-headline-sm text-lg gap-3">
         <span className="animate-spin rounded-none h-5 w-5 border-2 border-primary border-t-transparent"></span>
         FETCHING SYSTEM PERSONNEL REGISTRY...
       </div>
     );
   }
-
   return (
     <div className="space-y-8 bg-surface-dim pb-12">
       {error && <div className="bg-error-container border-l-4 border-error p-4 text-sm text-on-error-container font-bold">{error}</div>}
       {success && <div className="bg-[#1a2e21] border-l-4 border-secondary p-4 text-sm text-[#4edea3] font-bold">{success}</div>}
 
-      {/* Header Section from your mockup */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 border-b-2 border-secondary-container pb-6">
         <div>
           <h1 className="font-headline-lg text-4xl text-on-surface uppercase tracking-tight">Personnel Directory</h1>
-          <p className="font-mono-data text-secondary mt-2">Active Site Authorization: Level 4 | System Sync Verified</p>
+          {/* THE FIX: Removed the "Active Site Authorization: Level 4 | System Sync Verified" paragraph entirely */}
         </div>
+        
         <div className="w-full md:w-96">
           <label className="font-label-caps text-xs text-on-surface-variant mb-2 block tracking-widest">Mechanical Search</label>
           <div className="relative">
             <input 
-              className="w-full bg-surface-container-lowest border-2 border-secondary-container text-on-surface px-4 py-3 focus:border-primary focus:ring-0 outline-none font-mono-data transition-colors" 
-              placeholder="ID NO. / SURNAME / SITE" 
+              className="w-full bg-surface-container-lowest border-2 border-secondary-container text-on-surface px-4 py-3 focus:border-primary focus:ring-0 outline-none font-mono-data transition-colors"
+              placeholder="ID NO. / SURNAME / SITE"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -167,6 +167,7 @@ export default function WorkersTab() {
       {/* Dynamic Form Card (Create / Edit) */}
       <div className="bg-surface-container border-2 border-secondary-container p-6 relative overflow-hidden shadow-lg">
         <div className={`absolute top-0 left-0 w-full h-1 ${editingId ? 'bg-secondary' : 'bg-primary-container'}`}></div>
+        
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-headline-md text-xl text-on-surface uppercase tracking-wide">
             {editingId ? "Edit Personnel Profile" : "Register Personnel"}
@@ -257,7 +258,7 @@ export default function WorkersTab() {
             )}
             <button 
               type="submit" 
-              disabled={busy} 
+              disabled={busy}
               className={`${editingId ? 'w-2/3 bg-secondary text-on-secondary' : 'w-full bg-primary-container text-on-primary-container'} border-2 border-primary-container font-label-caps py-3 uppercase tracking-wider hover:brightness-110 transition-all disabled:opacity-50 btn-push`}
             >
               {busy ? "Processing..." : (editingId ? "Save Profile Updates" : "Register Worker Profile")}
@@ -310,7 +311,7 @@ export default function WorkersTab() {
                     <div className="flex justify-end gap-2">
                       <button 
                         onClick={() => handleEditClick(w)} 
-                        className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm" 
+                        className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm"
                         title="Edit Profile"
                       >
                         <span className="material-symbols-outlined text-[18px]">edit</span>
@@ -318,7 +319,7 @@ export default function WorkersTab() {
                       
                       <button 
                         onClick={() => handleReset(w.id)} 
-                        className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm" 
+                        className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm"
                         title="Reset Key"
                       >
                         <span className="material-symbols-outlined text-[18px]">key</span>
@@ -327,15 +328,14 @@ export default function WorkersTab() {
                       {w.username !== "admin" && (
                         <button 
                           onClick={() => handleDelete(w.id, w.name)} 
-                          className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-error hover:text-error hover:bg-error-container/20 transition-all btn-push rounded shadow-sm" 
+                          className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-error hover:text-error hover:bg-error-container/20 transition-all btn-push rounded shadow-sm"
                           title="Purge Profile"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                       )}
-                    </div>                  
-                    </td>
-
+                    </div>
+                  </td>
                 </tr>
               ))
             )}

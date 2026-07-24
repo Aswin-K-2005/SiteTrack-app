@@ -192,12 +192,11 @@ export default function EmployeeHome() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-on-surface-variant font-headline-sm text-lg gap-3 bg-background">
-        <span className="animate-spin rounded-full h-5 w-5 border-2 border-primary-container border-t-transparent"></span>
+        <span className="animate-spin rounded-none h-5 w-5 border-2 border-primary border-t-transparent"></span>
         LOADING CANVAS...
       </div>
     );
   }
-
   const MOBILE_TABS = [
     { id: "attendance", label: "Tracker", icon: "my_location" },
     { id: "leaves", label: "Time Off", icon: "event_busy" }
@@ -206,30 +205,32 @@ export default function EmployeeHome() {
   return (
     <div className="flex-grow pt-24 pb-28 md:pb-12 px-6 max-w-7xl mx-auto w-full font-body-md text-on-surface relative">
       
-      {/* MOBILE BOTTOM NAV - BULLETPROOF GLASSMORPHISM & SAFE AREA */}
+      {/* MOBILE BOTTOM NAV - WHATSAPP STYLE FLOATING PILL */}
       <div 
-        className="md:hidden fixed left-0 right-0 w-full border-t border-outline-variant/50 z-[100] flex justify-around items-center px-2 pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.6)]"
+        className="md:hidden fixed z-[100] flex justify-evenly items-center px-4 py-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-outline-variant/30"
         style={{
-          /* THE FIX: Hovers 16px above the system gap so it floats like a pill */
-          bottom: 'calc(env(safe-area-inset-bottom, 12px) + 16px)', 
+          bottom: 'calc(env(safe-area-inset-bottom, 8px) + 8px)', 
           left: '16px',
           right: '16px',
-          backgroundColor: 'rgba(26, 32, 44, 0.85)', /* Dark industrial theme with 85% opacity */
-          backdropFilter: 'blur(24px)', /* Heavy frosted glass effect */
+          /* THE TWEAK: Dropped opacity to 0.40 for massive glass transparency */
+          backgroundColor: 'rgba(12, 19, 34, 0.40)', 
+          backdropFilter: 'blur(24px)', 
           WebkitBackdropFilter: 'blur(24px)',
-          borderRadius: '40px', /* Perfect WhatsApp-style extreme curves */
-        }}      >
+          borderRadius: '40px', 
+        }}
+      >
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex flex-col items-center justify-center min-w-[64px] transition-all btn-push ${
+              /* THE TWEAK: Removed flex-1 and used min-w to perfectly center the two icons */
+              className={`flex flex-col items-center justify-center min-w-[100px] transition-all btn-push ${
                 isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <div className={`flex items-center justify-center px-4 py-1 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
+              <div className={`flex items-center justify-center px-6 py-1.5 rounded-full mb-1 transition-colors ${isActive ? "bg-primary-container/20" : ""}`}>
                 <span 
                   className="material-symbols-outlined text-2xl transition-all"
                   style={{
@@ -247,7 +248,6 @@ export default function EmployeeHome() {
           );
         })}
       </div>
-
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between">
         <div>

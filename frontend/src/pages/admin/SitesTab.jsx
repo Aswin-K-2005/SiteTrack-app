@@ -90,12 +90,11 @@ export default function SitesTab() {
   if (loading && sites.length === 0) {
     return (
       <div className="flex items-center justify-center py-12 text-on-surface-variant font-headline-sm text-lg gap-3">
-        <span className="animate-spin rounded-full h-5 w-5 border-2 border-primary-container border-t-transparent"></span>
+        <span className="animate-spin rounded-none h-5 w-5 border-2 border-primary border-t-transparent"></span>
         FETCHING GEOFENCE REGISTRY...
       </div>
     );
   }
-
   return (
     <div className="space-y-8 relative">
       {error && <div className="bg-error-container/20 border-l-4 border-error p-4 text-sm text-error font-bold">{error}</div>}
