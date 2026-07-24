@@ -36,12 +36,22 @@ export const requestPushPermission = async () => {
   }
 };
 
-// Listen for foreground messages 
-export const listenForMessages = () => {   
-  onMessage(messaging, (payload) => {     
-    console.log("Foreground message received:", payload);     
-    if (payload.notification) {       
-      alert(`${payload.notification.title}\n${payload.notification.body}`);     
-    }   
-  });
+// Listen for foreground messages
+export const listenForMessages = () => {
+    onMessage(messaging, (payload) => {
+        console.log("Foreground message received:", payload);
+        if (payload.notification) {
+            // THE FIX: Instead of alert(), we ask the Service Worker to 
+            // construct and fire a native system notification drawer alert.
+            if ("serviceWorker" in navigator && "Notification" in window && Notification.permission === "granted") {
+                navigator.serviceWorker.ready.then((registration) => {
+                    registration.showNotification(payload.notification.title, {
+                        body: payload.notification.body,
+                        icon: "/favicon/apple-touch-icon.png", // Uses your app icon
+                        badge: "/favicon/favicon-96x96.png",
+                    });
+                });
+            }
+        }
+    });
 };
