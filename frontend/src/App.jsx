@@ -21,7 +21,8 @@ function Layout({ children }) {
       </main>
 
       {/* Industrial Animated Wireframe Background Overlay */}
-      <div className="fixed bottom-8 right-8 pointer-events-none opacity-20 z-0 hidden md:block">
+      {/* THE FIX: Removed 'hidden', scaled to 75% on mobile, and shifted to the upper right edge */}
+      <div className="fixed top-1/4 -right-16 md:top-auto md:bottom-8 md:right-8 pointer-events-none opacity-10 md:opacity-20 z-0 scale-75 md:scale-100">
         <div className="w-48 h-48 border-[1px] border-primary flex items-center justify-center animate-spin" style={{ animationDuration: '20s' }}>
           <div className="w-40 h-40 border-[1px] border-primary/50 animate-reverse-spin" style={{ animationDuration: '15s' }}></div>
         </div>

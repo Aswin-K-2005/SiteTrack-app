@@ -78,13 +78,14 @@ export default function HolidaysTab() {
         <h3 className="font-headline-md text-xl text-on-surface uppercase tracking-wide mb-6">Declare a Holiday</h3>
         
         <form onSubmit={handleAdd} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1">
               <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Holiday Title</label>
               <input
                 type="text" placeholder="e.g. Monsoon Safety Break" value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30 text-sm"
+                /* THE FIX: Swapped py-2.5 for a strict h-[46px] */
+                className="w-full h-[46px] bg-surface-container-low border border-outline-variant text-on-surface px-4 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30 text-sm appearance-none"
               />
             </div>
             
@@ -93,7 +94,8 @@ export default function HolidaysTab() {
               <input
                 type="date" value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
+                /* THE FIX: Added h-[46px] and appearance-none to stop iOS stretching */
+                className="w-full h-[46px] bg-surface-container-low border border-outline-variant text-on-surface px-4 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm appearance-none"
               />
             </div>
 
@@ -101,7 +103,8 @@ export default function HolidaysTab() {
               <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider block">Target Site</label>
               <select
                 value={siteId} onChange={(e) => setSiteId(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
+                /* THE FIX: Added h-[46px] to perfectly match the other two boxes */
+                className="w-full h-[46px] bg-surface-container-low border border-outline-variant text-on-surface px-4 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
               >
                 <option value="">Company-Wide (All Sites)</option>
                 {sites.map(s => (
