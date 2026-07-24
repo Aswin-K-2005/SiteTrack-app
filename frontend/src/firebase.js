@@ -20,7 +20,7 @@ export const requestPushPermission = async () => {
       const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");              
       
       const token = await getToken(messaging, {         
-        vapidKey: "BL59yeNy8YSJvtYDHFir6N32lB3TyIgIXi76iOXvq-dobpBeKzjIySgCwvLRFLzJd5n_qMNuf_hD8uNRylj5jJw", // <--- PASTE YOUR NEW VAPID KEY HERE         
+        vapidKey:import.meta.env.VITE_FIREBASE_VAPID_KEY,
         serviceWorkerRegistration: registration,       
       });              
       
