@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import client, { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { calculateDistance } from "../utils/geo";
@@ -20,7 +20,7 @@ function getPosition() {
 
 function dateLabel(str) {
   if (!str) return "";
-  return new Date(str + "T00:00:00").toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+  return new Date(str + "T00:00:00").toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 function timeLabel(iso) {
@@ -36,6 +36,9 @@ export default function EmployeeHome() {
 
   // Existing States
   const [history, setHistory] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+  const [holidays, setHolidays] = useState([]); // NEW: Storing all holidays for the timeline
+  
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -46,7 +49,6 @@ export default function EmployeeHome() {
   const [onLeaveToday, setOnLeaveToday] = useState(false);
 
   // Leave Request States
-  const [leaves, setLeaves] = useState([]);
   const [leaveStart, setLeaveStart] = useState("");
   const [leaveEnd, setLeaveEnd] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
@@ -61,6 +63,7 @@ export default function EmployeeHome() {
         client.get("/leaves/me")
       ]);
       setHistory(attRes.data);
+      setHolidays(holRes.data);
       setLeaves(leaveRes.data);
       
       const targetFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -130,6 +133,40 @@ export default function EmployeeHome() {
   const willCheckout = !!hasIn && !hasOut;
   const done = !!hasIn && !!hasOut;
 
+  // THE NEW ENGINE: Generates a perfect 14-day unified timeline
+  const timeline = useMemo(() => {
+    const days = [];
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const currentDate = new Date();
+
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(currentDate);
+      d.setDate(d.getDate() - i);
+      const dateStr = formatter.format(d);
+
+      // Check priorities: 1. Attendance, 2. Leave, 3. Holiday
+      const att = history.filter(r => r.record_date === dateStr);
+      const dayHasIn = att.find(r => r.type === "in" || r.type === "check_in");
+      const dayHasOut = att.find(r => r.type === "out" || r.type === "check_out");
+      
+      const lv = leaves.find(l => l.status === 'approved' && l.start_date <= dateStr && l.end_date >= dateStr);
+      
+      const hol = holidays.find(h => h.holiday_date === dateStr && (h.site_id === null || user?.sites?.some(s => s.id === h.site_id)));
+
+      days.push({
+        dateStr,
+        dayName: d.toLocaleDateString([], { weekday: 'short' }),
+        dateLabel: dateLabel(dateStr),
+        isToday: i === 0,
+        hasIn: dayHasIn,
+        hasOut: dayHasOut,
+        leave: lv,
+        holiday: hol
+      });
+    }
+    return days;
+  }, [history, leaves, holidays, user]);
+
   async function handleMark() {
     setError(""); setInfo("");
     setBusy(true);
@@ -197,6 +234,7 @@ export default function EmployeeHome() {
       </div>
     );
   }
+
   const MOBILE_TABS = [
     { id: "attendance", label: "Tracker", icon: "my_location" },
     { id: "leaves", label: "Time Off", icon: "event_busy" }
@@ -212,7 +250,6 @@ export default function EmployeeHome() {
           bottom: 'calc(env(safe-area-inset-bottom, 8px) + 8px)', 
           left: '16px',
           right: '16px',
-          /* THE TWEAK: Dropped opacity to 0.40 for massive glass transparency */
           backgroundColor: 'rgba(12, 19, 34, 0.40)', 
           backdropFilter: 'blur(24px)', 
           WebkitBackdropFilter: 'blur(24px)',
@@ -225,7 +262,6 @@ export default function EmployeeHome() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              /* THE TWEAK: Removed flex-1 and used min-w to perfectly center the two icons */
               className={`flex flex-col items-center justify-center min-w-[100px] transition-all btn-push ${
                 isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
               }`}
@@ -248,6 +284,7 @@ export default function EmployeeHome() {
           );
         })}
       </div>
+
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between">
         <div>
@@ -392,38 +429,69 @@ export default function EmployeeHome() {
           </div>
 
           <div className="lg:col-span-7 space-y-4">
-            <h2 className="font-headline-sm text-xl text-on-surface uppercase tracking-wider">Your Recent Activity</h2>
-            <div className="overflow-x-auto bg-surface-container border border-outline-variant rounded-lg">
-              {history.length === 0 ? (
-                <div className="p-8 text-center text-on-surface-variant/50">No attendance historical logs mapped yet.</div>
-              ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-surface-container-highest border-b border-outline-variant">
-                    <tr>
-                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DATE</th>
-                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">TYPE</th>
-                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">TIME</th>
-                      <th className="px-4 py-3 font-label-caps text-xs text-on-surface-variant tracking-wider">DISTANCE</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant">
-                    {history.slice(0, 10).map((r) => (
-                      <tr key={r.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-4 font-body-md text-sm">{dateLabel(r.record_date)}</td>
-                        <td className="px-4 py-4">
-                          {r.type === "check_in" || r.type === "in" ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#1a2e21] text-[#4edea3] font-label-caps text-[10px] rounded border border-secondary/30">IN</span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-error-container/20 text-error font-label-caps text-[10px] rounded border border-error/30">OUT</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 font-body-md text-sm text-on-surface-variant">{timeLabel(r.timestamp)}</td>
-                        <td className="px-4 py-4 font-body-md text-sm">{Math.round(r.distance_m)}m</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+            <h2 className="font-headline-sm text-xl text-on-surface uppercase tracking-wider">My 14-Day Timeline</h2>
+            
+            <div className="space-y-3">
+              {timeline.map((day) => {
+                // Determine block style based on priority
+                let bgColor, borderColor, iconColor, icon, title, subtitle;
+
+                // Priority 1: Did they clock in? (Even on holidays/leaves, if they worked, they worked!)
+                if (day.hasIn) {
+                  bgColor = "bg-[#1a2e21]";
+                  borderColor = "border-[#4edea3]/30";
+                  iconColor = "text-[#4edea3]";
+                  icon = "how_to_reg";
+                  title = "PRESENT";
+                  subtitle = `In: ${timeLabel(day.hasIn.timestamp)} ${day.hasOut ? `— Out: ${timeLabel(day.hasOut.timestamp)}` : '— Shift Active'}`;
+                } 
+                // Priority 2: Are they on approved leave?
+                else if (day.leave) {
+                  bgColor = "bg-error-container/20";
+                  borderColor = "border-error/30";
+                  iconColor = "text-error";
+                  icon = "medical_services";
+                  title = "ON LEAVE";
+                  subtitle = day.leave.reason || "Approved Time Off";
+                } 
+                // Priority 3: Is it a system holiday?
+                else if (day.holiday) {
+                  bgColor = "bg-warning-container/20";
+                  borderColor = "border-warning/30";
+                  iconColor = "text-warning";
+                  icon = "celebration";
+                  title = "HOLIDAY";
+                  subtitle = day.holiday.title;
+                } 
+                // Priority 4: No records found (Absent or Weekend)
+                else {
+                  bgColor = "bg-surface-container-low";
+                  borderColor = "border-outline-variant";
+                  iconColor = "text-on-surface-variant/50";
+                  icon = "horizontal_rule";
+                  title = day.isToday ? "PENDING" : "NO LOGS";
+                  subtitle = "No attendance marked";
+                }
+
+                return (
+                  <div key={day.dateStr} className={`flex items-center p-4 rounded-xl border ${bgColor} ${borderColor} transition-all`}>
+                    <div className="w-16 text-center border-r border-outline-variant/30 pr-4 mr-4 flex-shrink-0">
+                      <div className="font-label-caps text-[10px] text-on-surface-variant tracking-widest uppercase">{day.dayName}</div>
+                      <div className="font-headline-sm text-lg text-on-surface">{day.dateLabel.split(" ")[0]}</div>
+                    </div>
+                    
+                    <div className="flex-grow flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${iconColor} bg-white/5`}>
+                        <span className="material-symbols-outlined text-[18px]">{icon}</span>
+                      </div>
+                      <div>
+                        <div className={`font-label-caps text-xs tracking-wider uppercase font-bold ${iconColor}`}>{title}</div>
+                        <div className="font-body-md text-sm text-on-surface-variant mt-0.5">{subtitle}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
