@@ -31,10 +31,18 @@ def send_push_notification(token: str, title: str, body: str):
         return False
         
     message = messaging.Message(
-        data={
-            "title": title,
-            "body": body,
-        },
+        notification=messaging.Notification(
+            title=title,
+            body=body,
+        ),
+        webpush=messaging.WebpushConfig(
+            notification=messaging.WebpushNotification(
+                icon="/favicon/android-chrome-192x192.png",
+                badge="/favicon/notification-badge.png",
+                vibrate=[300, 100, 300, 100, 300],
+                require_interaction=True,
+            )
+        ),
         token=token,
     )
     
@@ -75,7 +83,7 @@ def run_evening_checkout_reminder(db: Session):
             first_name = worker.name.split(" ")[0] if worker.name else "Worker"
             success = send_push_notification(
                 token=worker.fcm_token,
-                title="Shift Reminder ⏰",
+                title="Shift Reminder",
                 body=f"Hey {first_name}, you are still checked in! Don't forget to mark your attendance out."
             )
             if success:

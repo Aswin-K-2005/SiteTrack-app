@@ -41,12 +41,11 @@ export const listenForMessages = () => {
     onMessage(messaging, (payload) => {
         console.log("Foreground message received:", payload);
         
-        // Check for payload.data instead of payload.notification
-        if (payload.data) {
+        if (payload.notification) {
             if ("serviceWorker" in navigator && "Notification" in window && Notification.permission === "granted") {
                 navigator.serviceWorker.ready.then((registration) => {
-                    registration.showNotification(payload.data.title, {
-                        body: payload.data.body,
+                    registration.showNotification(payload.notification.title, {
+                        body: payload.notification.body,
                         vibrate: [300, 100, 300, 100, 300], 
                         requireInteraction: true, 
                         icon: "/favicon/android-chrome-192x192.png",

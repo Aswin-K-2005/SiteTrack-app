@@ -1,20 +1,16 @@
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from app.auth import get_current_user, require_admin
 from app.database import get_db
 from app.geo import distance_meters
 from app.models import AttendanceRecord, AttendanceType, User, Site, Role, Holiday
 from app.schemas import AttendanceMarkRequest, AttendanceOut, TodayStatus
-
 # --- NEW: Import the notification engine ---
 from app.notifier import send_push_notification
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
-
 
 def _to_out(r: AttendanceRecord) -> AttendanceOut:
     # Explicitly tell the system this clock time is already locked to Indian Standard Time hours
@@ -84,16 +80,15 @@ def mark_attendance(
     record_type = AttendanceType.check_out if has_in else AttendanceType.check_in
 
     naive_ist_now = now_ist.replace(tzinfo=None)
-
     record = AttendanceRecord(
         user_id=current_user.id,
         site_id=valid_site.id,      # dynamically assign the site they are standing in
         type=record_type,
         timestamp=naive_ist_now,
         record_date=today,
-        distance_m=matched_dist,    
+        distance_m=matched_dist,
     )
-
+    
     db.add(record)
     db.commit()
     db.refresh(record)
@@ -102,12 +97,11 @@ def mark_attendance(
     if record_type == AttendanceType.check_in and current_user.fcm_token:
         send_push_notification(
             token=current_user.fcm_token,
-            title="Checked In Successfully ✅",
+            title="Checked In Successfully",
             body=f"Welcome to {valid_site.name}. Have a safe shift!"
         )
 
     return _to_out(record)
-
 
 @router.get("/me", response_model=list[AttendanceOut])
 def my_history(
@@ -122,7 +116,6 @@ def my_history(
         .all()
     )
     return [_to_out(r) for r in records]
-
 
 @router.get("/today", response_model=list[TodayStatus])
 def today_overview(db: Session = Depends(get_db), _admin: User = Depends(require_admin)):
@@ -161,7 +154,6 @@ def today_overview(db: Session = Depends(get_db), _admin: User = Depends(require
             status=status_val, last_time=last_time,
         ))
     return result
-
 
 @router.get("/log", response_model=list[AttendanceOut])
 def recent_log(db: Session = Depends(get_db), _admin: User = Depends(require_admin)):
