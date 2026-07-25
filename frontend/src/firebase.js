@@ -8,7 +8,7 @@ const firebaseConfig = {
   storageBucket: "sitetrack-backend.firebasestorage.app",   
   messagingSenderId: "580393625486",   
   appId: "1:580393625486:web:f46229e8ec7ced30ee66df" 
-}; // <--- THIS BRACE WAS MISSING
+};
 
 const app = initializeApp(firebaseConfig); 
 export const messaging = getMessaging(app); 
@@ -20,7 +20,7 @@ export const requestPushPermission = async () => {
       const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");              
       
       const token = await getToken(messaging, {         
-        vapidKey:import.meta.env.VITE_FIREBASE_VAPID_KEY,
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
         serviceWorkerRegistration: registration,       
       });              
       
@@ -40,15 +40,17 @@ export const requestPushPermission = async () => {
 export const listenForMessages = () => {
     onMessage(messaging, (payload) => {
         console.log("Foreground message received:", payload);
-        if (payload.notification) {
-            // THE FIX: Instead of alert(), we ask the Service Worker to 
-            // construct and fire a native system notification drawer alert.
+        
+        // Check for payload.data instead of payload.notification
+        if (payload.data) {
             if ("serviceWorker" in navigator && "Notification" in window && Notification.permission === "granted") {
                 navigator.serviceWorker.ready.then((registration) => {
-                    registration.showNotification(payload.notification.title, {
-                        body: payload.notification.body,
-                      //  icon: "/favicon/apple-touch-icon.png", // Uses your app icon
-                      // badge: "/favicon/favicon-96x96.png",
+                    registration.showNotification(payload.data.title, {
+                        body: payload.data.body,
+                        vibrate: [300, 100, 300, 100, 300], 
+                        requireInteraction: true, 
+                        icon: "/favicon/android-chrome-192x192.png",
+                        badge: "/favicon/notification-badge.png",
                     });
                 });
             }

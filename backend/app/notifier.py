@@ -31,10 +31,10 @@ def send_push_notification(token: str, title: str, body: str):
         return False
         
     message = messaging.Message(
-        notification=messaging.Notification(
-            title=title,
-            body=body,
-        ),
+        data={
+            "title": title,
+            "body": body,
+        },
         token=token,
     )
     

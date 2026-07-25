@@ -172,3 +172,28 @@ def recent_log(db: Session = Depends(get_db), _admin: User = Depends(require_adm
         .all()
     )
     return [_to_out(r) for r in records]
+
+@router.delete("/undo", status_code=status.HTTP_204_NO_CONTENT)
+def undo_checkout(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    tz_kolkata = ZoneInfo("Asia/Kolkata")
+    today = datetime.now(tz_kolkata).date()
+
+    # Find today's specific check-out record for this user
+    checkout_record = (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.user_id == current_user.id,
+            AttendanceRecord.record_date == today,
+            AttendanceRecord.type == AttendanceType.check_out
+        )
+        .first()
+    )
+
+    if not checkout_record:
+        raise HTTPException(status_code=404, detail="No check-out record found to undo today.")
+
+    # Destroy the check-out log
+    db.delete(checkout_record)
+    db.commit()
+    
+    return None

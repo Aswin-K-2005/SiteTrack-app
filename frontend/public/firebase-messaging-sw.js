@@ -18,12 +18,14 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
-  const notificationTitle = payload.notification.title;
+  // Read from payload.data instead of payload.notification
+  const notificationTitle = payload.data.title;
   const notificationOptions = {
-    body: payload.notification.body,
-    // Updated to match your actual PWA assets!
-   //  icon: '/favicon/apple-touch-icon.png', 
-   // badge: '/favicon/favicon-96x96.png',
+    body: payload.data.body,
+    vibrate: [300, 100, 300, 100, 300],
+    requireInteraction: true,
+    icon: '/favicon/android-chrome-192x192.png',
+    badge: '/favicon/notification-badge.png',
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
