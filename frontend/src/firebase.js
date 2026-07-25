@@ -47,8 +47,8 @@ export const listenForMessages = () => {
                 navigator.serviceWorker.ready.then((registration) => {
                     registration.showNotification(payload.notification.title, {
                         body: payload.notification.body,
-                        icon: "/favicon/apple-touch-icon.png", // Uses your app icon
-                        badge: "/favicon/favicon-96x96.png",
+                      //  icon: "/favicon/apple-touch-icon.png", // Uses your app icon
+                      // badge: "/favicon/favicon-96x96.png",
                     });
                 });
             }

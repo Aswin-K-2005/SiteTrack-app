@@ -22,8 +22,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: payload.notification.body,
     // Updated to match your actual PWA assets!
-    icon: '/favicon/apple-touch-icon.png', 
-    badge: '/favicon/favicon-96x96.png',
+   //  icon: '/favicon/apple-touch-icon.png', 
+   // badge: '/favicon/favicon-96x96.png',
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
