@@ -13,3 +13,8 @@ firebase.initializeApp({
 
 // 2. Initialize Messaging
 const messaging = firebase.messaging();
+
+// 3. THE FIX: Android Chrome absolutely requires a 'fetch' event listener to show the PWA Install prompt!
+self.addEventListener('fetch', function(event) {
+    // An empty fetch handler is enough to pass the PWA installability test.
+});;
