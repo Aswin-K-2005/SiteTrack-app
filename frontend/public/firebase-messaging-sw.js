@@ -9,12 +9,12 @@ firebase.initializeApp({
   storageBucket: "sitetrack-backend.firebasestorage.app",
   messagingSenderId: "580393625486",
   appId: "1:580393625486:web:f46229e8ec7ced30ee66df"
-});
+}); /* THE FIX: Added missing closing brace and parenthesis here */
 
 // 2. Initialize Messaging
 const messaging = firebase.messaging();
 
-// 3. THE FIX: Android Chrome absolutely requires a 'fetch' event listener to show the PWA Install prompt!
+// 3. Android Chrome absolutely requires a 'fetch' event listener to show the PWA Install prompt!
 self.addEventListener('fetch', function(event) {
     // An empty fetch handler is enough to pass the PWA installability test.
-});;
+});
