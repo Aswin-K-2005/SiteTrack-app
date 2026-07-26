@@ -245,17 +245,18 @@ export default function EmployeeHome() {
       
       {/* MOBILE BOTTOM NAV - WHATSAPP STYLE FLOATING PILL */}
       <div 
-        className="md:hidden fixed z-[100] flex justify-evenly items-center px-4 py-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-outline-variant/30"
+        className="md:hidden fixed z-[100] flex justify-evenly items-center px-4 py-2 shadow-[0_20px_40px_rgba(0,0,0,0.9)] border border-white/10"
         style={{
           bottom: 'calc(env(safe-area-inset-bottom, 8px) + 8px)', 
           left: '16px',
           right: '16px',
-          backgroundColor: 'rgba(12, 19, 34, 0.40)', 
-          backdropFilter: 'blur(24px)', 
-          WebkitBackdropFilter: 'blur(24px)',
-          borderRadius: '40px', 
+          /* THE FIX: Pure black base with 45% opacity for maximum liquid glass effect */
+          backgroundColor: 'rgba(0, 0, 0, 0.45)', 
+          backdropFilter: 'blur(32px)', 
+          WebkitBackdropFilter: 'blur(32px)',
+          borderRadius: '40px',
         }}
-      >
+      >   
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (

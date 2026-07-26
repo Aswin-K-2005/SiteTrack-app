@@ -50,20 +50,18 @@ export default function AdminDashboard() {
 
       {/* MOBILE BOTTOM NAV - WHATSAPP STYLE FLOATING PILL */}
       <div 
-        className="md:hidden fixed z-[100] flex justify-around items-center px-2 py-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-outline-variant/30"
-       style={{
-          /* THE TWEAK: Lowered the extra lift from 16px to 8px to sit much closer to the bottom edge */
+        className="md:hidden fixed z-[100] flex justify-around items-center px-2 py-2 shadow-[0_20px_40px_rgba(0,0,0,0.9)] border border-white/10"
+        style={{
           bottom: 'calc(env(safe-area-inset-bottom, 8px) + 8px)', 
           left: '16px',
           right: '16px',
-          /* THE TWEAK: Dropped opacity from 0.85 to 0.65 for a massive glassmorphism boost */
-          backgroundColor: 'rgba(12, 19, 34, 0.65)', 
-          backdropFilter: 'blur(24px)', 
-          WebkitBackdropFilter: 'blur(24px)',
-          borderRadius: '40px', 
+          /* THE FIX: Pure black base with 45% opacity for maximum liquid glass effect */
+          backgroundColor: 'rgba(0, 0, 0, 0.45)', 
+          backdropFilter: 'blur(32px)', 
+          WebkitBackdropFilter: 'blur(32px)',
+          borderRadius: '40px',
         }}
-
-      >
+        >     
         {MOBILE_TABS.map((t) => {
           const isActive = tab === t.id;
           return (

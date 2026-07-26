@@ -20,11 +20,11 @@ function Layout({ children }) {
         {children}
       </main>
 
-      {/* Industrial Animated Wireframe Background Overlay */}
-      {/* THE FIX: Removed 'hidden', scaled to 75% on mobile, and shifted to the upper right edge */}
-      <div className="fixed top-1/4 -right-16 md:top-auto md:bottom-8 md:right-8 pointer-events-none opacity-10 md:opacity-20 z-0 scale-75 md:scale-100">
-        <div className="w-48 h-48 border-[1px] border-primary flex items-center justify-center animate-spin" style={{ animationDuration: '20s' }}>
-          <div className="w-40 h-40 border-[1px] border-primary/50 animate-reverse-spin" style={{ animationDuration: '15s' }}></div>
+     {/* Industrial Animated Wireframe Background Overlay */}
+      <div className="fixed top-1/4 -right-16 md:top-auto md:bottom-8 md:right-8 pointer-events-none opacity-40 md:opacity-60 z-0 scale-75 md:scale-100">
+        {/* THE FIX: Bumped border to 2px and added a subtle orange glow */}
+        <div className="w-48 h-48 border-[2px] border-primary shadow-[0_0_15px_rgba(255,90,0,0.2)] flex items-center justify-center animate-spin" style={{ animationDuration: '20s' }}>
+          <div className="w-40 h-40 border-[2px] border-primary/80 animate-reverse-spin" style={{ animationDuration: '15s' }}></div>
         </div>
       </div>
     </div>
