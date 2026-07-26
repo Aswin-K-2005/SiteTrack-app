@@ -61,7 +61,7 @@ export default function Login() {
 
         <button type="submit" disabled={busy} className="w-full bg-primary-container text-on-primary font-bold py-3 mt-2 rounded-lg uppercase tracking-wider hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
           {busy && <span className="animate-spin rounded-full h-4 w-4 border-2 border-on-primary border-t-transparent"></span>}
-          {busy ? "Authorizing..." : "Access Terminal"}
+          {busy ? "Signing in..." : "Login"}
         </button>
       </form>
     </div>

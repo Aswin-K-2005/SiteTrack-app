@@ -60,28 +60,37 @@ export default function OverviewTab() {
     <div className="space-y-8">
       {/* High Level Stats Bento */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-surface-variant border border-outline-variant p-4 rounded-xl relative overflow-hidden group">
-          <span className="font-data-display text-5xl text-primary-container">{today.length}</span>
-          <h4 className="font-label-caps text-xs text-on-surface-variant uppercase mt-2 tracking-widest">Total Workers</h4>
-        </div>
         
         <div className="bg-surface-variant border border-outline-variant p-4 rounded-xl relative overflow-hidden group">
-          <span className="font-data-display text-5xl text-secondary">{totalCheckedIn}</span>
+          <div className="flex justify-between items-center">
+            <span className="font-data-display text-5xl text-primary-container">{today.length}</span>
+            {/* THE FIX: Safety Orange Hardhat Icon */}
+            <span className="material-symbols-outlined text-4xl text-primary-container opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>engineering</span>
+          </div>
+          <h4 className="font-label-caps text-xs text-on-surface-variant uppercase mt-2 tracking-widest">Total Workers</h4>
+        </div>
+                 
+        <div className="bg-surface-variant border border-outline-variant p-4 rounded-xl relative overflow-hidden group">
+          <div className="flex justify-between items-center">
+            <span className="font-data-display text-5xl text-secondary">{totalCheckedIn}</span>
+            {/* THE FIX: Tracker Green Location Icon */}
+            <span className="material-symbols-outlined text-4xl text-secondary opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>my_location</span>
+          </div>
           <h4 className="font-label-caps text-xs text-on-surface-variant uppercase mt-2 tracking-widest">Active On-Site</h4>
         </div>
 
         <div className="bg-surface-variant border border-outline-variant p-4 rounded-xl md:col-span-2 lg:col-span-1 flex flex-col justify-center">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest">System Health</h4>
-            <span className="w-3 h-3 rounded-full bg-secondary animate-pulse"></span>
+            <span className="material-symbols-outlined text-2xl text-secondary animate-pulse">sensors</span>
           </div>
           <div className="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden">
-            <div className="h-full bg-[#4edea3] w-full"></div>
+            <div className="h-full bg-secondary w-full"></div>
           </div>
           <p className="text-[10px] mt-2 text-on-surface-variant uppercase">All geofences operational</p>
         </div>
-      </div>
 
+      </div>
       {/* Live Site Overview Matrix */}
       <section>
         <div className="flex items-center justify-between mb-4">

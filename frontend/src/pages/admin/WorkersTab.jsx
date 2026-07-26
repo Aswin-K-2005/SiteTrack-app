@@ -130,7 +130,7 @@ export default function WorkersTab() {
         </div>
         
         <div className="w-full md:w-96">
-          <label className="font-label-caps text-xs text-on-surface-variant mb-2 block tracking-widest">Mechanical Search</label>
+          <label className="font-label-caps text-xs text-on-surface-variant mb-2 block tracking-widest">Search Workers</label>
           <div className="relative">
             <input 
               className="w-full bg-surface-container-lowest border-2 border-secondary-container text-on-surface px-4 py-3 focus:border-primary focus:ring-0 outline-none font-mono-data transition-colors"

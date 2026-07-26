@@ -131,7 +131,7 @@ export default function SitesTab() {
             </div>
 
             <button type="submit" disabled={busy} className="w-full bg-primary-container text-on-primary font-bold py-4 rounded-lg text-lg uppercase tracking-wider hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary-container/10">
-              {busy ? "Adding System Geofence..." : "Create Boundary Target"}
+              {busy ? "Saving..." : "Save Site"}
             </button>
           </form>
         </div>
