@@ -16,10 +16,8 @@ export default function Topbar() {
       /* THE FIX: Pushes the inner content below the iPhone notch automatically */
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      {/* Industrial Construction Hazard Stripes Accent */}
-      <div className="h-1.5 w-full bg-repeating-linear-gradient from-tertiary via-background to-tertiary"
-            style={{ backgroundImage: 'repeating-linear-gradient(135deg, #f9bd22 0 10px, #0c1322 10px 20px)' }}></div>
-            
+      {/* Sleek Industrial Accent Line */}
+      <div className="h-1 w-full bg-primary-container shadow-[0_0_15px_rgba(0,0,0,0.5)] shadow-primary-container/60"></div>
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <div>
           <div className="font-label-caps text-[10px] tracking-widest text-primary-container font-bold uppercase">SiteTrack App</div>
