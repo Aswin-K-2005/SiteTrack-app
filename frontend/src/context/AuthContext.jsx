@@ -22,12 +22,10 @@ export function AuthProvider({ children }) {
       const res = await client.get("/users/me");
       setUser(res.data);
       
-      // NEW: Silently request push permissions and save the token to the database
-      if (res.data.role !== "admin") {
-         const fcmToken = await requestPushPermission();
-         if (fcmToken) {
-            await client.post("/users/me/fcm-token", { token: fcmToken });
-         }
+      // Request push permissions and save FCM token for all users (including Admins)
+      const fcmToken = await requestPushPermission();
+      if (fcmToken) {
+         await client.post("/users/me/fcm-token", { token: fcmToken });
       }
       
     } catch {
