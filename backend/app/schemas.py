@@ -7,6 +7,8 @@ from app.models import Role, AttendanceType
 class LoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=60)
     password: str = Field(min_length=1, max_length=128)
+    device_id: Optional[str] = None
+    device_name: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -65,7 +67,9 @@ class UserOut(BaseModel):
     username: str
     role: Role
     must_change_password: bool
-    fcm_token: Optional[str] = None  # <-- Add this!
+    fcm_token: Optional[str] = None
+    registered_device_id: Optional[str] = None
+    device_name: Optional[str] = None
     sites: list[SiteOut] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 

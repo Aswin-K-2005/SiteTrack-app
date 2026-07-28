@@ -1,6 +1,7 @@
+from typing import Optional
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from app.auth import get_current_user, require_admin
 from app.database import get_db
@@ -8,7 +9,7 @@ from app.geo import distance_meters
 from app.models import AttendanceRecord, AttendanceType, User, Site, Role, Holiday
 from app.schemas import AttendanceMarkRequest, AttendanceOut, TodayStatus
 # --- NEW: Import the notification engine ---
-from app.notifier import send_push_notification
+from app.notifier import send_push_notification, notify_admins_proxy_attempt
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
@@ -31,9 +32,25 @@ def _to_out(r: AttendanceRecord) -> AttendanceOut:
 @router.post("/mark", response_model=AttendanceOut, status_code=status.HTTP_201_CREATED)
 def mark_attendance(
     payload: AttendanceMarkRequest,
+    x_device_id: Optional[str] = Header(None, alias="X-Device-ID"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    # Device Binding Verification for workers
+    if current_user.role.value == "worker":
+        if current_user.registered_device_id:
+            if not x_device_id or x_device_id != current_user.registered_device_id:
+                # 🚨 Alert Admins of Attendance Proxy Attempt!
+                notify_admins_proxy_attempt(
+                    db=db,
+                    title="⚠️ Attendance Proxy Blocked!",
+                    body=f"Blocked attendance attempt: Worker '{current_user.name}' ({current_user.username}) tried marking attendance from an unapproved device."
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Attendance can only be marked from your registered device.",
+                )
+
     if not current_user.sites:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are not assigned to any sites yet")
         

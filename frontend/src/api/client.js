@@ -11,6 +11,11 @@ client.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   
+  const deviceId = localStorage.getItem("sitetrack_device_id");
+  if (deviceId) {
+    config.headers["X-Device-ID"] = deviceId;
+  }
+  
   // ⚡ THE TUNNEL ULTRA BYPASS ENGINE
   // bypass-tunnel-reminder kills the 511 response screen from localtunnel
   // ngrok-skip-browser-warning handles structural deviations on ngrok profiles

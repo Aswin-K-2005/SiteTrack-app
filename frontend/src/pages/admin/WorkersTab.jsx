@@ -90,6 +90,20 @@ export default function WorkersTab() {
     }
   }
 
+  async function handleResetDevice(id, name) {
+    setError(""); setSuccess("");
+    if (!window.confirm(`Unbind registered device for worker "${name}"? They will be able to bind a new device on their next login.`)) {
+      return;
+    }
+    try {
+      await client.post(`/users/${id}/reset-device`);
+      setSuccess(`Device binding for worker "${name}" has been reset. They can now bind a new device.`);
+      await load();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    }
+  }
+
   async function handleDelete(id, name) {
     setError(""); setSuccess("");
     if (!window.confirm(`Are you absolutely sure you want to completely delete worker "${name}"?`)) {
@@ -301,11 +315,23 @@ export default function WorkersTab() {
                     {w.sites && w.sites.length > 0 ? w.sites.map(s => s.name).join(", ") : "UNASSIGNED"}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    {w.must_change_password ? (
-                      <span className="border border-error text-error px-2 py-0.5 text-xs">NEW PROFILE</span>
-                    ) : (
-                      <span className="border border-primary text-primary px-2 py-0.5 text-xs">ACTIVE SYNC</span>
-                    )}
+                    <div className="flex flex-col items-center gap-1">
+                      {w.must_change_password ? (
+                        <span className="border border-error text-error px-2 py-0.5 text-xs">NEW PROFILE</span>
+                      ) : (
+                        <span className="border border-primary text-primary px-2 py-0.5 text-xs">ACTIVE SYNC</span>
+                      )}
+                      {w.registered_device_id ? (
+                        <span className="text-[11px] border border-secondary/40 text-secondary bg-secondary/10 px-2 py-0.5 rounded flex items-center gap-1" title={`Device ID: ${w.registered_device_id}`}>
+                          <span className="material-symbols-outlined text-[13px]">smartphone</span>
+                          {w.device_name || "Bound Device"}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-on-surface-variant/70 border border-outline-variant px-2 py-0.5 rounded">
+                          Unbound Device
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
@@ -320,11 +346,21 @@ export default function WorkersTab() {
                       <button 
                         onClick={() => handleReset(w.id)} 
                         className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-primary hover:text-primary transition-all btn-push rounded shadow-sm"
-                        title="Reset Key"
+                        title="Reset Password"
                       >
                         <span className="material-symbols-outlined text-[18px]">key</span>
                       </button>
                       
+                      {w.registered_device_id && (
+                        <button 
+                          onClick={() => handleResetDevice(w.id, w.name)} 
+                          className="flex items-center justify-center p-2 bg-surface-container-highest border border-secondary-container hover:border-amber-400 hover:text-amber-400 transition-all btn-push rounded shadow-sm"
+                          title="Unbind / Reset Phone Device"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">phonelink_erase</span>
+                        </button>
+                      )}
+
                       {w.username !== "admin" && (
                         <button 
                           onClick={() => handleDelete(w.id, w.name)} 

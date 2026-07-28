@@ -17,7 +17,10 @@ def _to_user_out(u: User) -> UserOut:
         username=u.username,
         role=u.role,
         must_change_password=u.must_change_password,
-        sites=u.sites, # <-- Now we just pass the whole list of sites!
+        fcm_token=u.fcm_token,
+        registered_device_id=u.registered_device_id,
+        device_name=u.device_name,
+        sites=u.sites,
     )
 
 @router.get("/me", response_model=UserOut)
@@ -134,3 +137,20 @@ def update_fcm_token(
     current_user.fcm_token = payload.token
     db.commit()
     return {"status": "success", "message": "Device token registered."}
+
+@router.post("/{user_id}/reset-device", response_model=UserOut)
+def reset_user_device(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    """Resets/unbinds a worker's registered device (Admin only)."""
+    worker = db.get(User, user_id)
+    if not worker:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
+
+    worker.registered_device_id = None
+    worker.device_name = None
+    db.commit()
+    db.refresh(worker)
+    return _to_user_out(worker)

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import client from "../api/client";
 import { requestPushPermission } from "../firebase";
+import { getOrCreateDeviceId } from "../utils/device";
 
 const AuthContext = createContext(null);
 
@@ -16,6 +17,8 @@ export function AuthProvider({ children }) {
       return;
     }
     try {
+      // Ensure device ID is initialized in storage/headers
+      await getOrCreateDeviceId();
       const res = await client.get("/users/me");
       setUser(res.data);
       
@@ -39,7 +42,13 @@ export function AuthProvider({ children }) {
   }, [fetchMe]);
 
   async function login(username, password) {
-    const res = await client.post("/auth/login", { username, password });
+    const { deviceId, deviceName } = await getOrCreateDeviceId();
+    const res = await client.post("/auth/login", {
+      username,
+      password,
+      device_id: deviceId,
+      device_name: deviceName,
+    });
     localStorage.setItem("sitetrack_token", res.data.access_token);
     localStorage.setItem("sitetrack_role", res.data.role);
     await fetchMe();

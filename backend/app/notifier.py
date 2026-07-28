@@ -91,3 +91,18 @@ def run_evening_checkout_reminder(db: Session):
                 
     logger.info(f"Evening reminder job complete. Sent {count} notifications.")
     return count
+
+def notify_admins_proxy_attempt(db: Session, title: str, body: str):
+    """Sends a high-priority push notification to all admins when a proxy attempt is detected."""
+    try:
+        admins = db.query(User).filter(User.role == Role.admin, User.fcm_token.isnot(None)).all()
+        for admin in admins:
+            if admin.fcm_token:
+                send_push_notification(
+                    token=admin.fcm_token,
+                    title=title,
+                    body=body
+                )
+    except Exception as e:
+        logger.error(f"Failed to notify admins of proxy attempt: {e}")
+

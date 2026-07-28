@@ -10,8 +10,25 @@ from app.routers import auth_router, users_router, sites_router, attendance_rout
 from app.report_service import generate_and_email_monthly_report
 from app.notifier import run_evening_checkout_reminder
 
+from sqlalchemy import inspect, text
+
 # Initialize database schema components
 Base.metadata.create_all(bind=engine)
+
+def run_db_migrations():
+    """Ensure newly added columns exist in existing user table without breaking production DB."""
+    try:
+        inspector = inspect(engine)
+        columns = [c['name'] for c in inspector.get_columns('users')]
+        with engine.begin() as conn:
+            if 'registered_device_id' not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN registered_device_id VARCHAR(255)"))
+            if 'device_name' not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN device_name VARCHAR(120)"))
+    except Exception as e:
+        print(f"Migration note: {e}")
+
+run_db_migrations()
 
 def seed_default_admin():
     db = SessionLocal()
