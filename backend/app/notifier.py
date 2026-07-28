@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import firebase_admin
 from firebase_admin import credentials, messaging
 from sqlalchemy.orm import Session
-from app.models import User, AttendanceRecord, AttendanceType
+from app.models import User, AttendanceRecord, AttendanceType, Role
 
 logger = logging.getLogger(__name__)
 
